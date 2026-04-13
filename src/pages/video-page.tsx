@@ -70,6 +70,11 @@ export function VideoPage() {
       return
     }
 
+    if (talksLoading) {
+      setMetadataLoading(false)
+      return
+    }
+
     const alreadyInCatalog = talks.some((item) => item.uri === resolvedUri)
     if (alreadyInCatalog) {
       setResolvedTalk(null)
@@ -102,7 +107,7 @@ export function VideoPage() {
     return () => {
       active = false
     }
-  }, [resolvedUri, talks])
+  }, [resolvedUri, talks, talksLoading])
 
   useEffect(() => {
     if (!resolvedUri || !videoRef.current) {

@@ -29,7 +29,12 @@ const navItems = [
   },
 ]
 
-function NavItem({ label, icon: Icon, ...props }: NavLinkProps & { label: string; icon: typeof Film }) {
+function NavItem({
+  label,
+  icon: Icon,
+  compact = false,
+  ...props
+}: NavLinkProps & { label: string; icon: typeof Film; compact?: boolean }) {
   return (
     <NavLink
       {...props}
@@ -44,6 +49,7 @@ function NavItem({ label, icon: Icon, ...props }: NavLinkProps & { label: string
         cn(
           'flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-[background-color,color,border-color] md:justify-start md:px-3.5',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/35 md:text-sm',
+          compact && 'px-2.5 sm:px-3',
           isActive
             ? 'border border-accent/45 bg-surface/80 text-accent'
             : 'border border-transparent text-muted hover:border-line/45 hover:bg-surface/70 hover:text-text',
@@ -51,7 +57,7 @@ function NavItem({ label, icon: Icon, ...props }: NavLinkProps & { label: string
       }
     >
       <Icon className="h-4 w-4" />
-      <span>{label}</span>
+      <span className={cn(compact && 'hidden min-[360px]:inline')}>{label}</span>
     </NavLink>
   )
 }
@@ -131,12 +137,12 @@ export function AppShell({ children }: PropsWithChildren) {
       <footer className="relative z-10 border-t border-line/45 bg-surface/80 supports-[backdrop-filter]:backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-3 py-4 text-xs text-muted sm:px-4 md:flex-row md:items-center md:justify-between md:px-6">
           <p>Open source · MIT licence</p>
-          <p className="flex items-center gap-3">
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
             <a
               href="https://tangled.sh/@j4ck.xyz/atmosphere-vods"
               target="_blank"
               rel="noreferrer"
-              className="underline-offset-4 hover:text-text hover:underline"
+              className="inline-flex min-h-11 items-center underline-offset-4 hover:text-text hover:underline"
             >
               Tangled
             </a>
@@ -144,7 +150,7 @@ export function AppShell({ children }: PropsWithChildren) {
               href="https://github.com/j4ckxyz/atmosphere-vods"
               target="_blank"
               rel="noreferrer"
-              className="underline-offset-4 hover:text-text hover:underline"
+              className="inline-flex min-h-11 items-center underline-offset-4 hover:text-text hover:underline"
             >
               GitHub
             </a>
@@ -152,7 +158,7 @@ export function AppShell({ children }: PropsWithChildren) {
               href="https://vod.j4ck.xyz"
               target="_blank"
               rel="noreferrer"
-              className="underline-offset-4 hover:text-text hover:underline"
+              className="inline-flex min-h-11 items-center underline-offset-4 hover:text-text hover:underline"
             >
               iStream →
             </a>
@@ -176,7 +182,7 @@ export function AppShell({ children }: PropsWithChildren) {
         aria-label="Bottom tabs"
       >
         {navItems.map((item) => (
-          <NavItem key={item.to} label={item.label} to={item.to} end={item.end} icon={item.icon} />
+          <NavItem key={item.to} label={item.label} to={item.to} end={item.end} icon={item.icon} compact />
         ))}
       </nav>
     </div>

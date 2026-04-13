@@ -252,7 +252,7 @@ export function SearchPage() {
             type="search"
             value={query}
             onChange={onQueryChange}
-            placeholder="Search by title, tags, or topics"
+            placeholder="Search titles, tags, and topics"
             className="h-11 w-full bg-transparent text-sm text-text outline-none placeholder:text-muted"
             autoComplete="off"
           />
@@ -261,18 +261,18 @@ export function SearchPage() {
         {!loading && !error && trimmedQuery ? (
           <section className="rounded-lg border border-line/45 bg-surface/80 p-4 text-xs text-muted">
             <p>
-              Search blends semantic ranking for all Streamplace VODs with richer AtmosphereConf tags/topics.
+              Results combine semantic ranking for all Streamplace VODs with richer AtmosphereConf metadata.
             </p>
-            {remoteLoading ? <p className="mt-2">Ranking query...</p> : null}
+            {remoteLoading ? <p className="mt-2">Ranking results...</p> : null}
             {!remoteLoading && remoteMode ? (
               <p className="mt-2">
-                Mode: {remoteMode === 'semantic' ? 'semantic embeddings' : 'lexical fallback'}
+                Search mode: {remoteMode === 'semantic' ? 'semantic embeddings' : 'keyword fallback'}
               </p>
             ) : null}
             {!remoteLoading && remoteNotice ? <p className="mt-2">{remoteNotice}</p> : null}
             {!remoteLoading && remoteGeneratedAt ? (
               <p className="mt-2">
-                Index snapshot: {new Date(remoteGeneratedAt).toLocaleString()}
+                Index updated: {new Date(remoteGeneratedAt).toLocaleString()}
                 {remoteIndexedCount !== null ? ` (${remoteIndexedCount} embedded videos)` : ''}
               </p>
             ) : null}
@@ -305,7 +305,7 @@ export function SearchPage() {
       {!loading && error ? (
         <ErrorPanel
           title="Search unavailable"
-          message="Talk metadata failed to load, so live filtering is temporarily unavailable."
+          message="We couldn't load video metadata, so search is temporarily unavailable. Please try again."
           onRetry={refresh}
         />
       ) : null}
@@ -314,7 +314,7 @@ export function SearchPage() {
         <section className="rounded-lg border border-line/45 bg-surface/80 p-5">
           <h3 className="text-base font-semibold text-text">No results</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Try a different keyword or remove filters to explore all talks.
+            Try a different search term, or clear your query to browse everything.
           </p>
         </section>
       ) : null}

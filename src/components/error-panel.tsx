@@ -22,7 +22,7 @@ export function ErrorPanel({ title, message, onRetry }: ErrorPanelProps) {
       {onRetry ? (
         <Button variant="secondary" className="mt-5" onClick={onRetry}>
           <RefreshCcw className="h-4 w-4" />
-          Retry
+          Try again
         </Button>
       ) : null}
     </section>

@@ -73,3 +73,66 @@ export interface AppTalk {
   taxonomyTopics?: string[]
   taxonomyKeywords?: string[]
 }
+
+export interface IonosphereTalkRecord {
+  uri: string
+  cid: string
+  value: {
+    $type: 'tv.ionosphere.talk'
+    title?: string
+    room?: string
+    track?: string
+    category?: string
+    eventUri?: string
+    startsAt?: string
+    endsAt?: string
+    speakerUris?: string[]
+    videoUri?: string
+  }
+}
+
+export interface IonosphereConceptRecord {
+  uri: string
+  cid: string
+  value: {
+    $type: 'tv.ionosphere.concept'
+    name?: string
+    aliases?: string[]
+  }
+}
+
+export interface IonosphereAnnotationRecord {
+  uri: string
+  cid: string
+  value: {
+    $type: 'tv.ionosphere.annotation'
+    talkUri?: string
+    conceptUri?: string
+  }
+}
+
+export interface IonosphereSpeakerRecord {
+  uri: string
+  cid: string
+  value: {
+    $type: 'tv.ionosphere.speaker'
+    name?: string
+    handle?: string
+    did?: string
+  }
+}
+
+export interface IonosphereEnrichment {
+  room?: string
+  scheduledAt?: string
+  track?: string
+  topics: string[]
+  speakerName?: string
+  speakerHandle?: string
+  speakerAvatar?: string
+}
+
+export interface IonosphereEnrichmentResult {
+  byVodUri: Map<string, IonosphereEnrichment>
+  allTopics: string[]
+}

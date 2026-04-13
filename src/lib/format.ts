@@ -21,6 +21,17 @@ export function formatDate(iso: string): string {
   }).format(date)
 }
 
+export function formatDateTime(iso: string): string {
+  const date = new Date(iso)
+  return new Intl.DateTimeFormat(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+}
+
 export function truncateDid(did: string): string {
   if (did.length <= 22) {
     return did

@@ -18,10 +18,10 @@ export function TagPage() {
   if (!tag) {
     return (
       <ErrorPanel
-        title="Invalid tag"
-        message="This tag route is not valid."
-        onRetry={refresh}
-      />
+          title="Invalid tag"
+          message="That tag link isn't valid. Go back to Search and pick a tag again."
+          onRetry={refresh}
+        />
     )
   }
 
@@ -47,7 +47,7 @@ export function TagPage() {
       {!loading && error ? (
         <ErrorPanel
           title="Tag view unavailable"
-          message="Talk metadata failed to load, so tag filtering is temporarily unavailable."
+          message="We couldn't load video metadata, so tag filtering is temporarily unavailable."
           onRetry={refresh}
         />
       ) : null}
@@ -56,7 +56,7 @@ export function TagPage() {
         <section className="rounded-lg border border-line/45 bg-surface/80 p-5">
           <h2 className="text-base font-semibold text-text">No talks for this tag</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Try a different tag from the search page.
+            Try another tag from Search.
           </p>
         </section>
       ) : null}

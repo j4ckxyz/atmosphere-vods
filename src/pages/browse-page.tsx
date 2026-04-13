@@ -85,7 +85,7 @@ export function BrowsePage() {
     <div className="space-y-7 md:space-y-10" aria-busy={loading}>
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold text-text">Streamplace VOD Browser</h1>
-        <p className="text-sm text-muted">All discovered repos, newest first.</p>
+        <p className="text-sm text-muted">Browse every discovered Streamplace VOD, sorted newest first.</p>
       </header>
 
       {loading ? (
@@ -98,7 +98,7 @@ export function BrowsePage() {
       {!loading && error ? (
         <ErrorPanel
           title="Unable to load talks"
-          message="The app could not fetch records from discovered Streamplace repos. Check your connection and retry."
+          message="We couldn't load videos from Streamplace repos right now. Check your connection, then try again."
           onRetry={refresh}
         />
       ) : null}
@@ -141,7 +141,7 @@ export function BrowsePage() {
                 </summary>
                 <div className="mt-3 space-y-3">
                   <p className="text-sm text-muted">
-                    {sourceRepos.length} repo{sourceRepos.length === 1 ? '' : 's'} with{' '}
+                    Found {sourceRepos.length} repo{sourceRepos.length === 1 ? '' : 's'} publishing{' '}
                     <code>place.stream.video</code> records.
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -155,7 +155,7 @@ export function BrowsePage() {
                     ))}
                   </div>
                   <p className="text-xs text-muted">
-                    AtmosphereConf official repo contributes {atmosphereCount} video
+                    The official AtmosphereConf repo currently contributes {atmosphereCount} video
                     {atmosphereCount === 1 ? '' : 's'}.
                   </p>
                 </div>

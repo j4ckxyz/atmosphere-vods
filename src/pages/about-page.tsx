@@ -27,6 +27,9 @@ export function AboutPage() {
     const nextDisabled = !hapticsDisabled
     setLocalHapticsDisabled(nextDisabled)
     setHapticsDisabled(nextDisabled)
+    if (!nextDisabled) {
+      hapticTap()
+    }
   }
 
   return (
@@ -55,9 +58,9 @@ export function AboutPage() {
         <h2 className="text-base font-semibold text-text">Keyboard shortcuts</h2>
         <ul className="mt-3 space-y-2 text-sm text-muted">
           <li>Browse/Search: <code>J</code> next, <code>K</code> previous, <code>/</code> focus search, <code>Enter</code> open selected card.</li>
-          <li>Video: <code>Space</code> or <code>K</code> play/pause, <code>J</code>/<code>L</code> seek ±10s.</li>
-          <li>Video: <code>F</code> fullscreen, <code>M</code> mute, <code>0-9</code> seek 0%-90%.</li>
-          <li>Video: <code>&lt;</code>/<code>&gt;</code> adjust speed by 0.25x, <code>Esc</code> back to browse.</li>
+          <li>Video: <code>Space</code> or <code>K</code> play/pause, <code>J</code>/<code>L</code> seek +/- 10 seconds.</li>
+          <li>Video: <code>F</code> fullscreen, <code>M</code> mute, <code>0-9</code> jump to 0-90%.</li>
+          <li>Video: <code>&lt;</code>/<code>&gt;</code> change speed by 0.25x, <code>Esc</code> return to Browse.</li>
         </ul>
       </section>
 
@@ -98,16 +101,21 @@ export function AboutPage() {
       {showHapticsToggle ? (
         <section className="rounded-lg border border-line/45 bg-surface/80 p-5 md:p-6">
           <h2 className="text-base font-semibold text-text">Haptic feedback</h2>
-          <p className="mt-2 text-sm text-muted">Subtle vibrations on interactions (Android only)</p>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={!hapticsDisabled}
-            onClick={onHapticsToggle}
-            className="mt-3 inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text"
-          >
-            {!hapticsDisabled ? 'Enabled' : 'Disabled'}
-          </button>
+          <p className="mt-2 text-sm text-muted">Subtle vibrations on interactions (Android only).</p>
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!hapticsDisabled}
+              onClick={onHapticsToggle}
+              className="inline-flex h-11 w-[3.25rem] items-center rounded-full border border-line/45 bg-surface/80 px-1 transition"
+            >
+              <span
+                className={`h-5 w-5 rounded-full bg-text transition-transform ${hapticsDisabled ? 'translate-x-0' : 'translate-x-5'}`}
+              />
+            </button>
+            <span className="text-sm text-muted">{!hapticsDisabled ? 'Enabled' : 'Disabled'}</span>
+          </div>
         </section>
       ) : null}
     </div>

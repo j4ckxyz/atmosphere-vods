@@ -208,6 +208,7 @@ export function VideoPage() {
   }, [resolvedUri, reloadToken])
 
   const onRetryPlayback = useCallback(() => {
+    hapticTap()
     setReloadToken((token) => token + 1)
   }, [])
 
@@ -304,6 +305,7 @@ export function VideoPage() {
     const onTouchEnd = () => {
       const distance = latestY - startY
       if (distance > 120) {
+        hapticBack()
         navigate(-1)
       }
     }
@@ -427,7 +429,7 @@ export function VideoPage() {
     return (
       <ErrorPanel
         title="Invalid video link"
-        message="This link is missing a valid AT URI."
+        message="This video link is missing required information. Go back and open the video again."
         onRetry={() => navigate('/')}
       />
     )
@@ -436,7 +438,7 @@ export function VideoPage() {
   if (!talk && (talksLoading || metadataLoading)) {
     return (
       <section className="rounded-lg border border-line/45 bg-surface/80 p-5">
-        <p className="text-sm text-muted">Loading video metadata...</p>
+        <p className="text-sm text-muted">Loading video details...</p>
       </section>
     )
   }
@@ -445,7 +447,7 @@ export function VideoPage() {
     return (
       <ErrorPanel
         title="Talk not found"
-        message="This video could not be located in the conference catalog."
+        message="We couldn't find this video in the current catalog. It may have been removed or moved."
         onRetry={() => navigate('/')}
       />
     )
@@ -487,7 +489,7 @@ export function VideoPage() {
           <div className="mt-4">
             <ErrorPanel
               title="Playback failed"
-              message={error ?? 'The video playlist could not be loaded.'}
+              message={error ?? "We couldn't load this video's playlist."}
               onRetry={onRetryPlayback}
             />
           </div>
@@ -499,7 +501,7 @@ export function VideoPage() {
           </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
+        <div className="grid gap-3 text-sm text-muted sm:grid-cols-[auto,1fr,auto] sm:items-center">
           <Button variant="secondary" onClick={onTogglePlay}>
             Play / Pause
           </Button>
@@ -507,7 +509,7 @@ export function VideoPage() {
             {playbackElapsed} / {playbackTotal}
           </p>
 
-          <label className="flex min-h-11 min-w-[12rem] flex-1 items-center gap-2">
+          <label className="flex min-h-11 min-w-0 items-center gap-2 sm:col-span-3">
             <span className="sr-only">Seek timeline</span>
             <input
               type="range"
@@ -521,7 +523,7 @@ export function VideoPage() {
             />
           </label>
 
-          <label className="flex min-h-11 items-center gap-2">
+          <label className="flex min-h-11 items-center gap-2 sm:justify-self-end">
             <span>Speed</span>
             <select
               value={playbackRate}
@@ -545,7 +547,7 @@ export function VideoPage() {
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line/60 bg-surface/80 px-3 text-sm text-text transition hover:bg-surface/90"
             >
               <ArrowDownToLine className="h-4 w-4" />
-              Download HLS Playlist
+              Download playlist (.m3u8)
             </a>
           ) : null}
 
@@ -556,7 +558,7 @@ export function VideoPage() {
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line/60 bg-surface/80 px-3 text-sm text-text transition hover:bg-surface/90"
             >
               <ArrowDownToLine className="h-4 w-4" />
-              Download Source MP4
+              Download source MP4
             </a>
           ) : null}
         </div>

@@ -18,10 +18,9 @@ export function TalkCard({ talk, featured = false }: TalkCardProps) {
   const cardRef = useRef<HTMLAnchorElement | null>(null)
   const [thumbnail, setThumbnail] = useState<string | null>(() => getCachedThumbnail(talk.uri))
   const [hasEnteredView, setHasEnteredView] = useState<boolean>(false)
-  const featuredThumbnail = featured ? thumbnail : null
 
   useEffect(() => {
-    if (!featured || thumbnail || hasEnteredView || !cardRef.current) {
+    if (thumbnail || hasEnteredView || !cardRef.current) {
       return
     }
 
@@ -46,10 +45,10 @@ export function TalkCard({ talk, featured = false }: TalkCardProps) {
     return () => {
       observer.disconnect()
     }
-  }, [featured, thumbnail, hasEnteredView])
+  }, [thumbnail, hasEnteredView])
 
   useEffect(() => {
-    if (!featured || !hasEnteredView || thumbnail) {
+    if (!hasEnteredView || thumbnail) {
       return
     }
 
@@ -65,7 +64,7 @@ export function TalkCard({ talk, featured = false }: TalkCardProps) {
     return () => {
       active = false
     }
-  }, [featured, hasEnteredView, thumbnail, talk.uri])
+  }, [hasEnteredView, thumbnail, talk.uri])
 
   return (
     <Link
@@ -81,27 +80,29 @@ export function TalkCard({ talk, featured = false }: TalkCardProps) {
         featured ? 'p-5 md:p-6' : 'p-4',
       )}
     >
-      {featuredThumbnail ? (
+      {thumbnail ? (
         <div className="pointer-events-none absolute -inset-px">
           <img
-            src={featuredThumbnail}
+            src={thumbnail}
             alt=""
             aria-hidden="true"
             loading="lazy"
             decoding="async"
-            className="block h-full w-full object-cover"
+            className="block h-full w-full object-cover grayscale"
           />
           <div
             className="absolute inset-0"
             style={{
               backgroundImage:
-                'linear-gradient(165deg, oklch(0 0 0 / 0.84), oklch(0.12 0 0 / 0.66))',
+                featured
+                  ? 'linear-gradient(165deg, oklch(0 0 0 / 0.8), oklch(0.12 0 0 / 0.58))'
+                  : 'linear-gradient(165deg, oklch(0 0 0 / 0.9), oklch(0.12 0 0 / 0.72))',
             }}
           />
         </div>
       ) : null}
 
-      <div className="relative z-10">
+      <div className="relative z-10 min-h-[7rem]">
         <h3
           className={cn(
             'line-clamp-2 font-semibold leading-tight text-text',

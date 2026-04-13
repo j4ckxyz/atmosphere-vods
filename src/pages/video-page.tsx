@@ -66,8 +66,20 @@ export function VideoPage() {
     setStatus('loading')
     setError(null)
     setCurrentTime(0)
+    setPlaylistUrl(null)
 
     let cancelled = false
+
+    const onVideoError = () => {
+      if (cancelled) {
+        return
+      }
+
+      setError('Video playback failed in this browser. Please retry.')
+      setStatus('error')
+    }
+
+    video.addEventListener('error', onVideoError)
 
     async function load() {
       try {
@@ -81,14 +93,12 @@ export function VideoPage() {
           hlsRef.current = null
         }
 
-        if (video.canPlayType('application/vnd.apple.mpegurl')) {
-          video.src = playlistUrl
-        } else {
-          const { default: Hls } = await import('hls.js/light')
-          if (!Hls.isSupported()) {
-            throw new Error('This browser does not support HLS playback.')
-          }
+        const { default: Hls } = await import('hls.js/light')
+        if (cancelled) {
+          return
+        }
 
+        if (Hls.isSupported()) {
           const hls = new Hls({
             maxBufferLength: 30,
             lowLatencyMode: true,
@@ -96,9 +106,15 @@ export function VideoPage() {
           hls.loadSource(playlistUrl)
           hls.attachMedia(video)
           hlsRef.current = hls
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = playlistUrl
+          video.load()
+        } else {
+          throw new Error('This browser does not support HLS playback.')
         }
 
         setPlaylistUrl(playlistUrl)
+        setError(null)
         setStatus('ready')
       } catch (loadError) {
         if (cancelled) {
@@ -116,6 +132,7 @@ export function VideoPage() {
 
     return () => {
       cancelled = true
+      video.removeEventListener('error', onVideoError)
       if (hlsRef.current) {
         hlsRef.current.destroy()
         hlsRef.current = null

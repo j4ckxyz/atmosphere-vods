@@ -35,6 +35,9 @@ interface PagesFunctionContextLike {
 type RankedEntry = {
   uri: string
   score: number
+  semantic: number
+  lexical: number
+  freshness: number
 }
 
 let cachedIndex: { loadedAt: number; index: EmbeddingIndex; norms: number[] } | null = null
@@ -46,7 +49,6 @@ let cachedLiveCatalog: {
 } | null = null
 const INDEX_TTL_MS = 5 * 60 * 1000
 const LIVE_CATALOG_TTL_MS = 2 * 60 * 1000
-const EMBEDDING_DIMENSIONS = 4096
 
 function normalizeVector(vector: number[]): number {
   let sum = 0
@@ -308,13 +310,16 @@ async function loadEmbeddingIndex(context: PagesFunctionContextLike): Promise<{ 
   return { index, norms }
 }
 
-async function embedQuery(context: PagesFunctionContextLike, query: string): Promise<number[] | null> {
+async function embedQuery(
+  context: PagesFunctionContextLike,
+  query: string,
+  embeddingModel: string,
+): Promise<number[] | null> {
   const apiKey = context.env.OPENROUTER_API_KEY
   if (!apiKey) {
     return null
   }
 
-  const model = context.env.OPENROUTER_EMBEDDING_MODEL || 'qwen/qwen3-embedding-8b'
   const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
     method: 'POST',
     headers: {
@@ -324,7 +329,7 @@ async function embedQuery(context: PagesFunctionContextLike, query: string): Pro
       'X-OpenRouter-Title': 'Streamplace VOD semantic search',
     },
     body: JSON.stringify({
-      model,
+      model: embeddingModel,
       input: query,
       input_type: 'search_query',
     }),
@@ -389,14 +394,26 @@ function validateEmbeddingIndex(index: EmbeddingIndex): EmbeddingIndex {
     throw new Error('Embedding index entries missing')
   }
 
+  let expectedDimensions = 0
+
   const validEntries = index.entries.filter((entry) => {
     if (!entry?.uri || !Array.isArray(entry.embedding)) {
       return false
     }
-    if (entry.embedding.length !== EMBEDDING_DIMENSIONS) {
+
+    if (entry.embedding.length === 0) {
       return false
     }
-    return entry.embedding.every((value) => Number.isFinite(value))
+
+    if (!entry.embedding.every((value) => Number.isFinite(value))) {
+      return false
+    }
+
+    if (expectedDimensions === 0) {
+      expectedDimensions = entry.embedding.length
+    }
+
+    return entry.embedding.length === expectedDimensions
   })
 
   if (validEntries.length === 0) {
@@ -464,7 +481,7 @@ export const onRequestGet = async (context: PagesFunctionContextLike): Promise<R
     }
 
     const normByUri = mapNormsByUri(entries, norms)
-    const queryVector = await embedQuery(context, query)
+    const queryVector = await embedQuery(context, query, index.model)
     if (!queryVector) {
       const lexicalRanked = liveCatalog.talks
         .map((entry) => ({
@@ -484,6 +501,26 @@ export const onRequestGet = async (context: PagesFunctionContextLike): Promise<R
       })
     }
 
+    const expectedDimensions = embeddedEntries[0]?.embedding.length ?? 0
+    if (expectedDimensions > 0 && queryVector.length !== expectedDimensions) {
+      const lexicalRanked = liveCatalog.talks
+        .map((entry) => ({
+          uri: entry.uri,
+          score: lexicalScore(query, entry.title ?? ''),
+        }))
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
+
+      return jsonResponse({
+        uris: lexicalRanked.map((entry) => entry.uri),
+        mode: 'lexical',
+        notice: `Embedding model mismatch (${index.model}); using lexical title search fallback.`,
+        generatedAt: index.generatedAt,
+        indexedCount: embeddedEntries.length,
+      })
+    }
+
     const queryNorm = normalizeVector(queryVector)
     const bounds = recencyBounds(embeddedEntries)
     const ranked: RankedEntry[] = []
@@ -494,10 +531,11 @@ export const onRequestGet = async (context: PagesFunctionContextLike): Promise<R
       const liveTitle = liveCatalog.titleByUri.get(entry.uri) ?? entry.title ?? ''
       const lexical = lexicalScore(query, liveTitle)
       const freshness = recencyScore(liveCatalog.recencyByUri.get(entry.uri) ?? entry.createdAt, bounds)
-      const score = similarity * 0.82 + lexical * 0.13 + freshness * 0.05
+      const semantic = (similarity + 1) / 2
+      const score = semantic * 0.9 + lexical * 0.08 + freshness * 0.02
 
       if (score > 0) {
-        ranked.push({ uri: entry.uri, score })
+        ranked.push({ uri: entry.uri, score, semantic, lexical, freshness })
       }
     }
 
@@ -505,12 +543,22 @@ export const onRequestGet = async (context: PagesFunctionContextLike): Promise<R
       .map((talk) => ({
         uri: talk.uri,
         score: lexicalScore(query, talk.title) * 0.55,
+        semantic: 0,
+        lexical: lexicalScore(query, talk.title),
+        freshness: 0,
       }))
       .filter((entry) => entry.score > 0)
 
     ranked.push(...lexicalForUnembedded)
 
-    ranked.sort((a, b) => b.score - a.score)
+    ranked.sort(
+      (a, b) =>
+        b.score - a.score ||
+        b.semantic - a.semantic ||
+        b.lexical - a.lexical ||
+        b.freshness - a.freshness ||
+        a.uri.localeCompare(b.uri),
+    )
 
     const stalenessNotice =
       unembeddedTalks.length > 0

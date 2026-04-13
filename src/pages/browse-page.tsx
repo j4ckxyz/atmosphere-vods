@@ -119,7 +119,7 @@ export function BrowsePage() {
 
           {remainingTalks.length > 0 ? (
             <section className="space-y-3">
-              <h2 className="text-sm font-medium text-muted">More Talks</h2>
+              <h2 className="text-sm font-medium text-muted">More Videos</h2>
               <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] md:gap-4">
                 {remainingTalks.map((talk, index) => (
                   <TalkCard

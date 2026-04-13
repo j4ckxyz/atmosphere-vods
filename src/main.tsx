@@ -9,8 +9,11 @@ import { VideosProvider } from './state/videos-context.tsx'
 
 initializeTheme()
 
-registerSW({
+const updateServiceWorker = registerSW({
   immediate: true,
+  onNeedRefresh: () => {
+    updateServiceWorker(true)
+  },
   onRegisterError: (error) => {
     if (import.meta.env.DEV) {
       console.error('Service worker registration failed', error)

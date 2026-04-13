@@ -1,5 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 
 const PLC_DIRECTORY_URL = 'https://plc.directory'
@@ -293,7 +294,7 @@ function toEmbeddingInput(record) {
 }
 
 function computeContentSignature(record) {
-  return toEmbeddingInput(record)
+  return createHash('sha256').update(toEmbeddingInput(record)).digest('hex')
 }
 
 async function embedBatch(inputs) {
@@ -444,12 +445,24 @@ async function main() {
   const orderedRecords = orderedUris.map((uri) => recordsByUri.get(uri))
 
   const reuseCandidates = []
+  const legacyReuseCandidates = []
   const missingRecords = []
 
   for (const record of orderedRecords) {
     const existingEntry = existingByUri.get(record.uri)
+    if (!existingEntry) {
+      missingRecords.push(record)
+      continue
+    }
+
     const nextContentSignature = computeContentSignature(record)
-    if (existingEntry?.contentSignature === nextContentSignature) {
+    if (!existingEntry.contentSignature) {
+      legacyReuseCandidates.push({ record, existingEntry })
+      reuseCandidates.push({ record, existingEntry })
+      continue
+    }
+
+    if (existingEntry.contentSignature === nextContentSignature) {
       reuseCandidates.push({ record, existingEntry })
     } else {
       missingRecords.push(record)
@@ -509,6 +522,9 @@ async function main() {
 
   await writeFile(OUTPUT_PATH, `${JSON.stringify(output, null, 2)}\n`, 'utf8')
   console.log(`Reused embeddings: ${reuseCandidates.length}`)
+  if (legacyReuseCandidates.length > 0) {
+    console.log(`Legacy reused without re-embed: ${legacyReuseCandidates.length}`)
+  }
   console.log(`New embeddings: ${missingRecords.length}`)
   console.log(`Wrote embeddings to ${OUTPUT_PATH}`)
 }

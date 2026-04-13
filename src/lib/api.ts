@@ -1,7 +1,8 @@
 import {
   ATMOSPHERE_REPO_DID,
   BSKY_PUBLIC_API,
-  BSKY_RELAY_SYNC_API,
+  BSKY_RELAY_SYNC_APIS,
+  FALLBACK_REPO_DIDS,
   PLC_DIRECTORY_URL,
   STREAMPLACE_VIDEO_COLLECTION,
   VOD_PLAYLIST_ENDPOINT,
@@ -98,33 +99,51 @@ async function mapWithConcurrency<T, R>(
 }
 
 async function fetchReposByCollection(collection: string): Promise<string[]> {
-  const dids = new Set<string>()
-  let cursor: string | undefined
+  const errors: Error[] = []
 
-  do {
-    const query = new URLSearchParams({
-      collection,
-      limit: String(DISCOVERY_LIMIT),
-    })
+  for (const relayBase of BSKY_RELAY_SYNC_APIS) {
+    const dids = new Set<string>()
+    let cursor: string | undefined
 
-    if (cursor) {
-      query.set('cursor', cursor)
-    }
+    try {
+      do {
+        const query = new URLSearchParams({
+          collection,
+          limit: String(DISCOVERY_LIMIT),
+        })
 
-    const data = await fetchJson<ListReposByCollectionResponse>(
-      `${BSKY_RELAY_SYNC_API}/xrpc/com.atproto.sync.listReposByCollection?${query.toString()}`,
-    )
+        if (cursor) {
+          query.set('cursor', cursor)
+        }
 
-    for (const entry of data.repos ?? []) {
-      if (entry.did) {
-        dids.add(entry.did)
+        const data = await fetchJson<ListReposByCollectionResponse>(
+          `${relayBase}/xrpc/com.atproto.sync.listReposByCollection?${query.toString()}`,
+        )
+
+        for (const entry of data.repos ?? []) {
+          if (entry.did) {
+            dids.add(entry.did)
+          }
+        }
+
+        cursor = data.cursor
+      } while (cursor)
+
+      if (dids.size > 0) {
+        return [...dids].sort((a, b) => a.localeCompare(b))
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        errors.push(error)
       }
     }
+  }
 
-    cursor = data.cursor
-  } while (cursor)
+  if (errors.length > 0) {
+    return [...new Set(FALLBACK_REPO_DIDS)].sort((a, b) => a.localeCompare(b))
+  }
 
-  return [...dids].sort((a, b) => a.localeCompare(b))
+  return [...new Set(FALLBACK_REPO_DIDS)].sort((a, b) => a.localeCompare(b))
 }
 
 export function resolvePdsUrl(did: string): Promise<string> {
@@ -184,6 +203,10 @@ async function fetchRepoCollectionRecords(
 }
 
 async function fetchProfile(did: string): Promise<ActorProfile | null> {
+  if (!did) {
+    return null
+  }
+
   const query = new URLSearchParams({ actor: did })
 
   try {
@@ -193,6 +216,21 @@ async function fetchProfile(did: string): Promise<ActorProfile | null> {
   } catch {
     return null
   }
+}
+
+function getCreatorDid(record: { value: { creator?: string }; sourceRepoDid: string }): string {
+  return record.value.creator?.trim() || record.sourceRepoDid
+}
+
+function byCreatedAtDesc(
+  left: { value: { createdAt?: string } },
+  right: { value: { createdAt?: string } },
+): number {
+  const leftTs = Date.parse(left.value.createdAt ?? '')
+  const rightTs = Date.parse(right.value.createdAt ?? '')
+  const safeLeft = Number.isFinite(leftTs) ? leftTs : 0
+  const safeRight = Number.isFinite(rightTs) ? rightTs : 0
+  return safeRight - safeLeft
 }
 
 function getCachedProfile(did: string): Promise<ActorProfile | null> {
@@ -235,11 +273,9 @@ export async function fetchTalks(): Promise<AppTalk[]> {
   }
 
   const merged = repoRecords.flat()
-  const sorted = [...merged].sort(
-    (a, b) => new Date(b.value.createdAt).getTime() - new Date(a.value.createdAt).getTime(),
-  )
+  const sorted = [...merged].sort(byCreatedAtDesc)
 
-  const uniqueCreators = Array.from(new Set(sorted.map((record) => record.value.creator)))
+  const uniqueCreators = Array.from(new Set(sorted.map((record) => getCreatorDid(record))))
   const profiles = await mapWithConcurrency(
     uniqueCreators,
     PROFILE_CONCURRENCY,
@@ -249,8 +285,9 @@ export async function fetchTalks(): Promise<AppTalk[]> {
 
   return sorted.map((record) => {
     const taxonomy = taxonomyByUri.get(record.uri)
-    const profile = profileMap.get(record.value.creator)
-    const creatorName = profile?.displayName?.trim() || profile?.handle || truncateDid(record.value.creator)
+    const creatorDid = getCreatorDid(record)
+    const profile = profileMap.get(creatorDid)
+    const creatorName = profile?.displayName?.trim() || profile?.handle || truncateDid(creatorDid)
 
     return {
       uri: record.uri,
@@ -258,11 +295,11 @@ export async function fetchTalks(): Promise<AppTalk[]> {
       sourceRepoDid: record.sourceRepoDid,
       title: record.value.title,
       description: record.value.description,
-      creatorDid: record.value.creator,
+      creatorDid,
       creatorName,
       creatorHandle: profile?.handle,
       durationNs: record.value.duration,
-      createdAt: record.value.createdAt,
+      createdAt: record.value.createdAt ?? new Date(0).toISOString(),
       sourceRef: record.value.source?.ref,
       sourceMimeType: record.value.source?.mimeType,
       taxonomyGroup: taxonomy?.group,
@@ -293,8 +330,9 @@ async function toAppTalkFromRecord(record: GetRecordResponse): Promise<AppTalk> 
   }
 
   const taxonomy = taxonomyByUri.get(record.uri)
-  const profile = await getCachedProfile(record.value.creator)
-  const creatorName = profile?.displayName?.trim() || profile?.handle || truncateDid(record.value.creator)
+  const creatorDid = record.value.creator?.trim() || uriInfo.did
+  const profile = await getCachedProfile(creatorDid)
+  const creatorName = profile?.displayName?.trim() || profile?.handle || truncateDid(creatorDid)
 
   return {
     uri: record.uri,
@@ -302,11 +340,11 @@ async function toAppTalkFromRecord(record: GetRecordResponse): Promise<AppTalk> 
     sourceRepoDid: uriInfo.did,
     title: record.value.title,
     description: record.value.description,
-    creatorDid: record.value.creator,
+    creatorDid,
     creatorName,
     creatorHandle: profile?.handle,
     durationNs: record.value.duration,
-    createdAt: record.value.createdAt,
+    createdAt: record.value.createdAt ?? new Date(0).toISOString(),
     sourceRef: record.value.source?.ref,
     sourceMimeType: record.value.source?.mimeType,
     taxonomyGroup: taxonomy?.group,

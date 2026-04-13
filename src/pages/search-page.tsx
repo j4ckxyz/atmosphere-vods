@@ -3,7 +3,6 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { ErrorPanel } from '@/components/error-panel'
-import { ShortcutsHelp } from '@/components/shortcuts-help'
 import { TalkCard } from '@/components/talk-card'
 import { TalkGridSkeleton } from '@/components/talk-grid-skeleton'
 import { searchTalkUris } from '@/lib/semantic-search'
@@ -213,18 +212,7 @@ export function SearchPage() {
   return (
     <div className="space-y-7 md:space-y-10" aria-busy={loading}>
       <header className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-semibold text-text">Search Videos</h1>
-          <ShortcutsHelp
-            title="Search shortcuts"
-            items={[
-              { key: 'J', description: 'Next video card' },
-              { key: 'K', description: 'Previous video card' },
-              { key: '/', description: 'Focus search input' },
-              { key: 'Enter', description: 'Open selected card' },
-            ]}
-          />
-        </div>
+        <h1 className="text-2xl font-semibold text-text">Search Videos</h1>
 
         <label className="flex min-h-11 items-center gap-3 rounded-lg border border-line/45 bg-surface/80 px-3 focus-within:border-line/60 focus-within:ring-2 focus-within:ring-text/30">
           <Search className="h-4 w-4 text-muted" />

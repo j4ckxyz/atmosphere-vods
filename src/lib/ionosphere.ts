@@ -218,6 +218,9 @@ async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentRe
   const ionosphereTalks = asIonosphereTalks(talksRaw).filter(
     (record) => record.value.eventUri === IONOSPHERE_EVENT_URI,
   )
+  const unmatchedTalksByTitle = ionosphereTalks.filter(
+    (record) => typeof record.value.videoUri === 'string' && !talks.some((talk) => talk.uri === record.value.videoUri),
+  )
   const talkByVideoUri = new Map(
     ionosphereTalks
       .filter((record) => typeof record.value.videoUri === 'string' && Boolean(record.value.videoUri))
@@ -258,7 +261,9 @@ async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentRe
   const allTopics = new Set<string>()
 
   for (const vodTalk of talks) {
-    const match = talkByVideoUri.get(vodTalk.uri) ?? pickBestTalkByTitle(vodTalk, ionosphereTalks)
+    const directMatch = talkByVideoUri.get(vodTalk.uri)
+    const titleFallbackPool = directMatch ? ionosphereTalks : unmatchedTalksByTitle
+    const match = directMatch ?? pickBestTalkByTitle(vodTalk, titleFallbackPool)
     if (!match) {
       continue
     }

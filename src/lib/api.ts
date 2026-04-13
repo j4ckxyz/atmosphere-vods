@@ -314,13 +314,16 @@ export function isAtmosphereTalk(talk: AppTalk): boolean {
   return talk.sourceRepoDid === ATMOSPHERE_REPO_DID
 }
 
-function parseVideoUri(uri: string): { did: string } | null {
-  const match = uri.match(/^at:\/\/(did:[^/]+)\/place\.stream\.video\/[^/]+$/)
+function parseVideoUri(uri: string): { did: string; rkey: string } | null {
+  const match = uri.match(/^at:\/\/(did:[^/]+)\/place\.stream\.video\/([^/]+)$/)
   if (!match) {
     return null
   }
 
-  return { did: match[1] }
+  return {
+    did: match[1],
+    rkey: match[2],
+  }
 }
 
 async function toAppTalkFromRecord(record: GetRecordResponse): Promise<AppTalk> {
@@ -361,7 +364,12 @@ export async function fetchTalkByUri(uri: string): Promise<AppTalk> {
   }
 
   const pdsUrl = await resolvePdsUrl(uriInfo.did)
-  const query = new URLSearchParams({ uri })
+  const query = new URLSearchParams({
+    repo: uriInfo.did,
+    collection: STREAMPLACE_VIDEO_COLLECTION,
+    rkey: uriInfo.rkey,
+    uri,
+  })
   const record = await fetchJson<GetRecordResponse>(
     `${pdsUrl}/xrpc/com.atproto.repo.getRecord?${query.toString()}`,
   )

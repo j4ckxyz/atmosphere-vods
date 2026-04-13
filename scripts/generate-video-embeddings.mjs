@@ -17,6 +17,7 @@ const EXISTING_PATH = path.resolve(
 )
 const TAXONOMY_PATH = path.resolve(process.cwd(), 'src/lib/video-taxonomy.json')
 const IONOSPHERE_DID = 'did:plc:lkeq4oghyhnztbu4dxr3joff'
+const ATMOSPHERE_REPO_DID = 'did:plc:rbvrr34edl5ddpuwcubjiost'
 const IONOSPHERE_EVENT_URI =
   'at://did:plc:lkeq4oghyhnztbu4dxr3joff/tv.ionosphere.event/atmosphereconf-2026'
 const EMBEDDING_BATCH_SIZE = Number.parseInt(process.env.EMBEDDING_BATCH_SIZE ?? '64', 10)
@@ -27,6 +28,50 @@ function asString(value) {
 
 function normalizeWhitespace(value) {
   return value.replace(/\s+/g, ' ').trim()
+}
+
+function normalizeTitle(value) {
+  return String(value ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function titleScore(left, right) {
+  if (!left || !right) {
+    return 0
+  }
+
+  if (left === right) {
+    return 1
+  }
+
+  if (left.includes(right) || right.includes(left)) {
+    return 0.86
+  }
+
+  const leftWords = new Set(left.split(' '))
+  const rightWords = new Set(right.split(' '))
+  const overlap = [...leftWords].filter((word) => rightWords.has(word)).length
+  return overlap / Math.max(leftWords.size, rightWords.size, 1)
+}
+
+function pickBestIonosphereTalkByTitle(videoTitle, ionosphereTalks) {
+  const normalizedVideoTitle = normalizeTitle(videoTitle)
+  let best = undefined
+  let bestScore = 0
+
+  for (const talk of ionosphereTalks) {
+    const normalizedTalkTitle = normalizeTitle(talk?.value?.title)
+    const score = titleScore(normalizedVideoTitle, normalizedTalkTitle)
+    if (score > bestScore) {
+      best = talk
+      bestScore = score
+    }
+  }
+
+  return bestScore >= 0.9 ? best : undefined
 }
 
 function parseEnvFile(content) {
@@ -342,12 +387,21 @@ async function main() {
   console.log(`Loaded ${ionosphereTalks.length} Atmosphere talks from ionosphere`)
 
   const allRecords = []
+  let fallbackTitleMatchCount = 0
   for (const repoDid of repoDids) {
     try {
       const records = await fetchAllRecordsForRepo(repoDid)
       console.log(`Fetched ${records.length} videos from ${repoDid}`)
       for (const record of records) {
-        const talkUri = talkUriByVideoUri.get(record.uri)
+        const directTalkUri = talkUriByVideoUri.get(record.uri)
+        const fallbackTalk =
+          !directTalkUri && repoDid === ATMOSPHERE_REPO_DID
+            ? pickBestIonosphereTalkByTitle(record?.value?.title, ionosphereTalks)
+            : undefined
+        const talkUri = directTalkUri ?? fallbackTalk?.uri
+        if (!directTalkUri && fallbackTalk) {
+          fallbackTitleMatchCount += 1
+        }
         allRecords.push({
           ...record,
           sourceRepoDid: repoDid,
@@ -363,6 +417,10 @@ async function main() {
 
   if (allRecords.length === 0) {
     throw new Error('No video records available for embedding generation')
+  }
+
+  if (fallbackTitleMatchCount > 0) {
+    console.log(`Applied ${fallbackTitleMatchCount} fallback title matches for ionosphere talk linking`)
   }
 
   const existing = await loadExistingIndex()

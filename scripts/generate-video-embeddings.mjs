@@ -16,7 +16,18 @@ const EXISTING_PATH = path.resolve(
   process.env.EXISTING_EMBEDDINGS_PATH ?? process.env.EMBEDDINGS_OUTPUT_PATH ?? 'public/video-embeddings.json',
 )
 const TAXONOMY_PATH = path.resolve(process.cwd(), 'src/lib/video-taxonomy.json')
+const IONOSPHERE_DID = 'did:plc:lkeq4oghyhnztbu4dxr3joff'
+const IONOSPHERE_EVENT_URI =
+  'at://did:plc:lkeq4oghyhnztbu4dxr3joff/tv.ionosphere.event/atmosphereconf-2026'
 const EMBEDDING_BATCH_SIZE = Number.parseInt(process.env.EMBEDDING_BATCH_SIZE ?? '64', 10)
+
+function asString(value) {
+  return typeof value === 'string' ? value : ''
+}
+
+function normalizeWhitespace(value) {
+  return value.replace(/\s+/g, ' ').trim()
+}
 
 function parseEnvFile(content) {
   const vars = {}
@@ -184,10 +195,35 @@ async function fetchAllRecordsForRepo(repoDid) {
   return records
 }
 
+async function fetchAllCollectionRecords(repoDid, collection) {
+  const pdsUrl = await resolvePdsUrl(repoDid)
+  const records = []
+  let cursor = undefined
+
+  do {
+    const query = new URLSearchParams({
+      repo: repoDid,
+      collection,
+      limit: '100',
+    })
+    if (cursor) {
+      query.set('cursor', cursor)
+    }
+
+    const page = await fetchJson(`${pdsUrl}/xrpc/com.atproto.repo.listRecords?${query.toString()}`)
+    records.push(...(page.records ?? []))
+    cursor = page.cursor
+  } while (cursor)
+
+  return records
+}
+
 function toEmbeddingInput(record) {
   const title = record.value?.title ?? 'Untitled'
   const description = record.value?.description ?? ''
   const creator = record.value?.creator ?? ''
+  const transcript = record.ionosphereTranscript ?? ''
+  const ionosphereConcepts = record.ionosphereConcepts ?? []
   const taxonomy = record.taxonomy
   const taxonomyLine = taxonomy
     ? [
@@ -203,10 +239,16 @@ function toEmbeddingInput(record) {
     `title: ${title}`,
     description ? `description: ${description}` : '',
     creator ? `creator: ${creator}` : '',
+    transcript ? `transcript: ${transcript}` : '',
+    ionosphereConcepts.length > 0 ? `concepts: ${ionosphereConcepts.join(', ')}` : '',
     taxonomyLine ? `atmosphere-taxonomy: ${taxonomyLine}` : '',
   ]
     .filter(Boolean)
     .join('\n')
+}
+
+function computeContentSignature(record) {
+  return toEmbeddingInput(record)
 }
 
 async function embedBatch(inputs) {
@@ -239,16 +281,79 @@ async function main() {
 
   console.log(`Discovered ${repoDids.length} repos`)
 
+  const [ionosphereTalkRecords, ionosphereConceptRecords, ionosphereAnnotationRecords, ionosphereTranscriptRecords] =
+    await Promise.all([
+      fetchAllCollectionRecords(IONOSPHERE_DID, 'tv.ionosphere.talk'),
+      fetchAllCollectionRecords(IONOSPHERE_DID, 'tv.ionosphere.concept'),
+      fetchAllCollectionRecords(IONOSPHERE_DID, 'tv.ionosphere.annotation'),
+      fetchAllCollectionRecords(IONOSPHERE_DID, 'tv.ionosphere.transcript'),
+    ])
+
+  const ionosphereTalks = ionosphereTalkRecords.filter(
+    (record) => record?.value?.eventUri === IONOSPHERE_EVENT_URI && asString(record?.value?.videoUri),
+  )
+  const talkUriByVideoUri = new Map(
+    ionosphereTalks.map((record) => [asString(record.value.videoUri), record.uri]),
+  )
+
+  const conceptNameByUri = new Map(
+    ionosphereConceptRecords
+      .map((record) => {
+        const aliases = Array.isArray(record?.value?.aliases)
+          ? record.value.aliases.filter((alias) => typeof alias === 'string')
+          : []
+        const conceptName = asString(record?.value?.name) || asString(aliases[0])
+        return [record.uri, conceptName]
+      })
+      .filter((entry) => Boolean(entry[0] && entry[1])),
+  )
+
+  const conceptsByTalkUri = new Map()
+  for (const annotation of ionosphereAnnotationRecords) {
+    const talkUri = asString(annotation?.value?.talkUri)
+    const conceptUri = asString(annotation?.value?.conceptUri)
+    if (!talkUri || !conceptUri) {
+      continue
+    }
+    const conceptName = conceptNameByUri.get(conceptUri)
+    if (!conceptName) {
+      continue
+    }
+    const existing = conceptsByTalkUri.get(talkUri) ?? []
+    if (!existing.includes(conceptName)) {
+      existing.push(conceptName)
+      conceptsByTalkUri.set(talkUri, existing)
+    }
+  }
+
+  const transcriptByTalkUri = new Map()
+  for (const transcriptRecord of ionosphereTranscriptRecords) {
+    const talkUri = asString(transcriptRecord?.value?.talkUri)
+    const text = normalizeWhitespace(
+      asString(transcriptRecord?.value?.text) || asString(transcriptRecord?.value?.transcript),
+    )
+    if (!talkUri || !text) {
+      continue
+    }
+    const existing = transcriptByTalkUri.get(talkUri)
+    transcriptByTalkUri.set(talkUri, existing ? `${existing}\n${text}` : text)
+  }
+
+  console.log(`Loaded ${ionosphereTalks.length} Atmosphere talks from ionosphere`)
+
   const allRecords = []
   for (const repoDid of repoDids) {
     try {
       const records = await fetchAllRecordsForRepo(repoDid)
       console.log(`Fetched ${records.length} videos from ${repoDid}`)
       for (const record of records) {
+        const talkUri = talkUriByVideoUri.get(record.uri)
         allRecords.push({
           ...record,
           sourceRepoDid: repoDid,
           taxonomy: taxonomyByUri.get(record.uri),
+          ionosphereTranscript: talkUri ? transcriptByTalkUri.get(talkUri) ?? '' : '',
+          ionosphereConcepts: talkUri ? conceptsByTalkUri.get(talkUri) ?? [] : [],
         })
       }
     } catch (error) {
@@ -285,7 +390,8 @@ async function main() {
 
   for (const record of orderedRecords) {
     const existingEntry = existingByUri.get(record.uri)
-    if (existingEntry) {
+    const nextContentSignature = computeContentSignature(record)
+    if (existingEntry?.contentSignature === nextContentSignature) {
       reuseCandidates.push({ record, existingEntry })
     } else {
       missingRecords.push(record)
@@ -323,6 +429,7 @@ async function main() {
       sourceRepoDid: record.sourceRepoDid,
       createdAt: record.value?.createdAt,
       title: record.value?.title ?? 'Untitled',
+      contentSignature: computeContentSignature(record),
       embedding,
     }
   })

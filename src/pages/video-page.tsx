@@ -3,14 +3,11 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import {
-  startTransition,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type ChangeEvent,
-  type FormEvent,
 } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -24,7 +21,6 @@ import {
   hapticPlay,
   hapticSeek,
   hapticSuccess,
-  hapticTap,
 } from '@/lib/haptics'
 import { toTagPath, toVideoUriFromParams } from '@/lib/routes'
 import { getTalkTaxonomyTokens } from '@/lib/taxonomy'
@@ -51,11 +47,7 @@ export function VideoPage() {
 
   const [status, setStatus] = useState<PlaybackStatus>('idle')
   const [error, setError] = useState<string | null>(null)
-  const [currentTime, setCurrentTime] = useState<number>(0)
-  const [duration, setDuration] = useState<number>(0)
-  const rafRef = useRef<number | null>(null)
   const [reloadToken, setReloadToken] = useState(0)
-  const [playbackRate, setPlaybackRate] = useState<number>(1)
   const [playlistUrl, setPlaylistUrl] = useState<string | null>(null)
   const [resolvedTalk, setResolvedTalk] = useState<AppTalk | null>(null)
   const [metadataLoading, setMetadataLoading] = useState<boolean>(false)
@@ -70,9 +62,6 @@ export function VideoPage() {
     [talks, resolvedUri, resolvedTalk],
   )
   const talkTokens = useMemo(() => (talk ? getTalkTaxonomyTokens(talk).slice(0, 10) : []), [talk])
-
-  const playbackElapsed = formatDuration(currentTime * 1_000_000_000)
-  const playbackTotal = formatDuration(duration * 1_000_000_000 || talk?.durationNs || 0)
 
   useEffect(() => {
     if (!resolvedUri) {
@@ -122,7 +111,6 @@ export function VideoPage() {
     const video = videoRef.current
     setStatus('loading')
     setError(null)
-    setCurrentTime(0)
     setPlaylistUrl(null)
 
     let cancelled = false
@@ -208,80 +196,8 @@ export function VideoPage() {
   }, [resolvedUri, reloadToken])
 
   const onRetryPlayback = useCallback(() => {
-    hapticTap()
-    setReloadToken((token) => token + 1)
-  }, [])
-
-  const syncPlaybackState = useCallback(() => {
-    if (!videoRef.current) {
-      return
-    }
-
-    const current = videoRef.current.currentTime
-    const total = Number.isFinite(videoRef.current.duration) ? videoRef.current.duration : 0
-
-    startTransition(() => {
-      setCurrentTime(current)
-      setDuration(total)
-    })
-  }, [])
-
-  const onTimeUpdate = useCallback(() => {
-    if (rafRef.current) {
-      cancelAnimationFrame(rafRef.current)
-    }
-
-    rafRef.current = requestAnimationFrame(() => {
-      syncPlaybackState()
-      rafRef.current = null
-    })
-  }, [syncPlaybackState])
-
-  useEffect(() => {
-    return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current)
-      }
-    }
-  }, [])
-
-  const onSpeedChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-    const nextRate = Number(event.target.value)
-    const video = videoRef.current
-    if (!video) {
-      return
-    }
-    video.playbackRate = nextRate
-    setPlaybackRate(nextRate)
-  }, [])
-
-  const onSeekInput = useCallback((event: FormEvent<HTMLInputElement>) => {
-    const video = videoRef.current
-    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) {
-      return
-    }
-
-    const percent = Number(event.currentTarget.value)
-    if (!Number.isFinite(percent)) {
-      return
-    }
-
-    video.currentTime = (video.duration * percent) / 100
-    hapticSeek()
-  }, [])
-
-  const onTogglePlay = useCallback(() => {
-    const video = videoRef.current
-    if (!video) {
-      return
-    }
-
     hapticPlay()
-    if (video.paused) {
-      void video.play()
-    } else {
-      video.pause()
-    }
+    setReloadToken((token) => token + 1)
   }, [])
 
   useEffect(() => {
@@ -369,7 +285,6 @@ export function VideoPage() {
 
     if (lower === 'f') {
       event.preventDefault()
-      hapticTap()
       const container = playerContainerRef.current
       if (!container) {
         return
@@ -386,7 +301,6 @@ export function VideoPage() {
     if (lower === 'm') {
       event.preventDefault()
       video.muted = !video.muted
-      hapticTap()
       return
     }
 
@@ -404,8 +318,6 @@ export function VideoPage() {
       event.preventDefault()
       const nextRate = Math.max(0.25, video.playbackRate - 0.25)
       video.playbackRate = nextRate
-      setPlaybackRate(nextRate)
-      hapticTap()
       return
     }
 
@@ -413,8 +325,6 @@ export function VideoPage() {
       event.preventDefault()
       const nextRate = Math.min(4, video.playbackRate + 0.25)
       video.playbackRate = nextRate
-      setPlaybackRate(nextRate)
-      hapticTap()
       return
     }
 
@@ -473,8 +383,6 @@ export function VideoPage() {
             ref={videoRef}
             className="aspect-video w-full"
             controls
-            onTimeUpdate={onTimeUpdate}
-            onLoadedMetadata={onTimeUpdate}
             playsInline
           />
 
@@ -500,44 +408,6 @@ export function VideoPage() {
             {error}
           </p>
         ) : null}
-
-        <div className="grid gap-3 text-sm text-muted sm:grid-cols-[auto,1fr,auto] sm:items-center">
-          <Button variant="secondary" onClick={onTogglePlay}>
-            Play / Pause
-          </Button>
-          <p>
-            {playbackElapsed} / {playbackTotal}
-          </p>
-
-          <label className="flex min-h-11 min-w-0 items-center gap-2 sm:col-span-3">
-            <span className="sr-only">Seek timeline</span>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={duration > 0 ? Math.round((currentTime / duration) * 100) : 0}
-              onChange={onSeekInput}
-              onInput={onSeekInput}
-              className="h-11 w-full accent-[oklch(var(--accent))]"
-            />
-          </label>
-
-          <label className="flex min-h-11 items-center gap-2 sm:justify-self-end">
-            <span>Speed</span>
-            <select
-              value={playbackRate}
-              onChange={onSpeedChange}
-              className="h-11 rounded-lg border border-line/60 bg-surface/80 px-2 text-sm text-text"
-            >
-              <option value={0.5}>0.5x</option>
-              <option value={1}>1x</option>
-              <option value={1.25}>1.25x</option>
-              <option value={1.5}>1.5x</option>
-              <option value={2}>2x</option>
-            </select>
-          </label>
-        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {playlistUrl ? (

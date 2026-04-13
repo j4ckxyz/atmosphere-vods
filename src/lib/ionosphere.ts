@@ -26,6 +26,17 @@ interface GenericListRecordsResponse {
   cursor?: string
 }
 
+interface IonosphereTranscriptRecord {
+  uri: string
+  cid: string
+  value: {
+    $type?: string
+    talkUri?: string
+    text?: string
+    transcript?: string
+  }
+}
+
 let enrichmentCache: Promise<IonosphereEnrichmentResult> | null = null
 const profileCache = new Map<string, Promise<ActorProfile | null>>()
 
@@ -185,16 +196,32 @@ function asIonosphereSpeakers(
   }))
 }
 
+function asIonosphereTranscripts(
+  records: GenericListRecordsResponse['records'],
+): IonosphereTranscriptRecord[] {
+  return (records ?? []).map((record) => ({
+    uri: record.uri,
+    cid: record.cid,
+    value: record.value as IonosphereTranscriptRecord['value'],
+  }))
+}
+
 async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentResult> {
-  const [talksRaw, conceptsRaw, annotationsRaw, speakersRaw] = await Promise.all([
+  const [talksRaw, conceptsRaw, annotationsRaw, speakersRaw, transcriptsRaw] = await Promise.all([
     fetchCollection('tv.ionosphere.talk'),
     fetchCollection('tv.ionosphere.concept'),
     fetchCollection('tv.ionosphere.annotation'),
     fetchCollection('tv.ionosphere.speaker'),
+    fetchCollection('tv.ionosphere.transcript'),
   ])
 
   const ionosphereTalks = asIonosphereTalks(talksRaw).filter(
     (record) => record.value.eventUri === IONOSPHERE_EVENT_URI,
+  )
+  const talkByVideoUri = new Map(
+    ionosphereTalks
+      .filter((record) => typeof record.value.videoUri === 'string' && Boolean(record.value.videoUri))
+      .map((record) => [record.value.videoUri as string, record]),
   )
   const conceptByUri = new Map(
     asIonosphereConcepts(conceptsRaw).map((record) => [
@@ -222,11 +249,16 @@ async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentRe
   }
 
   const speakerByUri = new Map(asIonosphereSpeakers(speakersRaw).map((record) => [record.uri, record]))
+  const transcriptByTalkUri = new Map(
+    asIonosphereTranscripts(transcriptsRaw)
+      .map((record) => [record.value.talkUri, record.value.text ?? record.value.transcript ?? ''] as const)
+      .filter((entry) => Boolean(entry[0] && entry[1])),
+  )
   const byVodUri = new Map<string, IonosphereEnrichment>()
   const allTopics = new Set<string>()
 
   for (const vodTalk of talks) {
-    const match = pickBestTalkByTitle(vodTalk, ionosphereTalks)
+    const match = talkByVideoUri.get(vodTalk.uri) ?? pickBestTalkByTitle(vodTalk, ionosphereTalks)
     if (!match) {
       continue
     }
@@ -259,6 +291,7 @@ async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentRe
       scheduledAt: match.value.startsAt,
       track: match.value.track || match.value.category,
       topics,
+      transcriptText: transcriptByTalkUri.get(match.uri),
       speakerName,
       speakerHandle,
       speakerAvatar,

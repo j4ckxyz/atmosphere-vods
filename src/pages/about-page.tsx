@@ -47,6 +47,18 @@ export function AboutPage() {
           tag/topic metadata, so Atmosphere queries are usually more precise than general VOD queries.
         </p>
         <p className="mt-4 max-w-[70ch] text-sm leading-relaxed text-muted">
+          Additional AtmosphereConf enrichment data is available from{' '}
+          <a
+            href="https://ionosphere.tv/discussion"
+            target="_blank"
+            rel="noreferrer"
+            className="underline-offset-4 hover:text-text hover:underline"
+          >
+            ionosphere.tv/discussion
+          </a>
+          .
+        </p>
+        <p className="mt-4 max-w-[70ch] text-sm leading-relaxed text-muted">
           Live deployment:{' '}
           <a href="https://vods.j4ck.xyz" className="underline-offset-4 hover:text-text hover:underline">
             vods.j4ck.xyz

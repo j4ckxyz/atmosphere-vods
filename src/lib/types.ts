@@ -127,6 +127,7 @@ export interface IonosphereEnrichment {
   scheduledAt?: string
   track?: string
   topics: string[]
+  transcriptText?: string
   speakerName?: string
   speakerHandle?: string
   speakerAvatar?: string

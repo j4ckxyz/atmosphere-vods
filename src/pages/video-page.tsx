@@ -17,7 +17,8 @@ import { ErrorPanel } from '@/components/error-panel'
 import { Button } from '@/components/ui/button'
 import { fetchVideoPlaylist, getArchiveBlobUrl } from '@/lib/api'
 import { formatDate, formatDuration, truncateDid } from '@/lib/format'
-import { fromVideoParam } from '@/lib/routes'
+import { fromVideoParam, toTagPath } from '@/lib/routes'
+import { getTalkTaxonomyTokens } from '@/lib/taxonomy'
 import { useVideos } from '@/state/videos-context'
 
 type PlaybackStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -52,6 +53,7 @@ export function VideoPage() {
   )
 
   const talk = useMemo(() => talks.find((item) => item.uri === resolvedUri), [talks, resolvedUri])
+  const talkTokens = useMemo(() => (talk ? getTalkTaxonomyTokens(talk).slice(0, 10) : []), [talk])
 
   const playbackElapsed = formatDuration(currentTime * 1_000_000_000)
   const playbackTotal = formatDuration(duration * 1_000_000_000 || talk?.durationNs || 0)
@@ -93,7 +95,7 @@ export function VideoPage() {
           hlsRef.current = null
         }
 
-        const { default: Hls } = await import('hls.js/light')
+        const { default: Hls } = await import('hls.js')
         if (cancelled) {
           return
         }
@@ -112,6 +114,9 @@ export function VideoPage() {
         } else {
           throw new Error('This browser does not support HLS playback.')
         }
+
+        video.muted = false
+        video.volume = Math.max(video.volume || 1, 0.75)
 
         setPlaylistUrl(playlistUrl)
         setError(null)
@@ -342,6 +347,23 @@ export function VideoPage() {
             </a>
           ) : null}
         </div>
+
+        {talkTokens.length > 0 ? (
+          <section className="space-y-2">
+            <h2 className="text-sm font-medium text-muted">Topics</h2>
+            <div className="flex flex-wrap gap-2">
+              {talkTokens.map((token) => (
+                <Link
+                  key={token}
+                  to={toTagPath(token)}
+                  className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text"
+                >
+                  #{token}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </section>
 
       {talk ? (

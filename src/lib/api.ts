@@ -5,6 +5,7 @@ import {
   VOD_PLAYLIST_ENDPOINT,
 } from './constants'
 import { truncateDid } from './format'
+import taxonomyData from './video-taxonomy.json'
 import type {
   ActorProfile,
   AppTalk,
@@ -12,10 +13,21 @@ import type {
   PlcDidDocument,
 } from './types'
 
+interface TaxonomyEntry {
+  uri: string
+  group?: string
+  tags?: string[]
+  topics?: string[]
+  keywords?: string[]
+}
+
 const profileCache = new Map<string, Promise<ActorProfile | null>>()
 let pdsUrlPromise: Promise<string> | null = null
 const REQUEST_TIMEOUT_MS = 8_000
 const PROFILE_CONCURRENCY = 6
+const taxonomyByUri = new Map(
+  (taxonomyData.entries as TaxonomyEntry[]).map((entry) => [entry.uri, entry]),
+)
 
 async function fetchWithTimeout(
   url: string,
@@ -150,6 +162,7 @@ export async function fetchTalks(): Promise<AppTalk[]> {
   const profileMap = new Map(uniqueCreators.map((did, index) => [did, profiles[index]]))
 
   return sorted.map((record) => {
+    const taxonomy = taxonomyByUri.get(record.uri)
     const profile = profileMap.get(record.value.creator)
     const creatorName = profile?.displayName?.trim() || profile?.handle || truncateDid(record.value.creator)
 
@@ -157,6 +170,7 @@ export async function fetchTalks(): Promise<AppTalk[]> {
       uri: record.uri,
       cid: record.cid,
       title: record.value.title,
+      description: record.value.description,
       creatorDid: record.value.creator,
       creatorName,
       creatorHandle: profile?.handle,
@@ -164,6 +178,10 @@ export async function fetchTalks(): Promise<AppTalk[]> {
       createdAt: record.value.createdAt,
       sourceRef: record.value.source?.ref,
       sourceMimeType: record.value.source?.mimeType,
+      taxonomyGroup: taxonomy?.group,
+      taxonomyTags: taxonomy?.tags ?? [],
+      taxonomyTopics: taxonomy?.topics ?? [],
+      taxonomyKeywords: taxonomy?.keywords ?? [],
     }
   })
 }

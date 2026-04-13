@@ -4,6 +4,7 @@ export interface StreamVideoRecord {
   value: {
     $type: 'place.stream.video'
     title: string
+    description?: string
     creator: string
     duration: number
     createdAt: string
@@ -45,6 +46,7 @@ export interface AppTalk {
   uri: string
   cid: string
   title: string
+  description?: string
   creatorDid: string
   creatorName: string
   creatorHandle?: string
@@ -52,4 +54,8 @@ export interface AppTalk {
   createdAt: string
   sourceRef?: string
   sourceMimeType?: string
+  taxonomyGroup?: string
+  taxonomyTags?: string[]
+  taxonomyTopics?: string[]
+  taxonomyKeywords?: string[]
 }

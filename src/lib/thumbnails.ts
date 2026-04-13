@@ -178,17 +178,18 @@ async function extractThumbnail(uri: string): Promise<ThumbnailResult> {
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = playlistUrl
     } else {
-      const { default: Hls } = await import('hls.js/light')
+      const { default: Hls } = await import('hls.js')
       if (!Hls.isSupported()) {
         return null
       }
 
-      hls = new Hls({
+      const hlsInstance = new Hls({
         maxBufferLength: 10,
         lowLatencyMode: true,
       })
-      hls.loadSource(playlistUrl)
-      hls.attachMedia(video)
+      hlsInstance.loadSource(playlistUrl)
+      hlsInstance.attachMedia(video)
+      hls = hlsInstance
     }
 
     if (!(video.readyState >= 1 && Number.isFinite(video.duration) && video.duration > 0)) {

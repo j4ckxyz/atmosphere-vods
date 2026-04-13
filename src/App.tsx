@@ -7,6 +7,7 @@ const BrowsePage = lazy(() => import('@/pages/browse-page').then((module) => ({ 
 const SearchPage = lazy(() => import('@/pages/search-page').then((module) => ({ default: module.SearchPage })))
 const AboutPage = lazy(() => import('@/pages/about-page').then((module) => ({ default: module.AboutPage })))
 const VideoPage = lazy(() => import('@/pages/video-page').then((module) => ({ default: module.VideoPage })))
+const TagPage = lazy(() => import('@/pages/tag-page').then((module) => ({ default: module.TagPage })))
 
 function RouteFallback() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/video/:encodedUri" element={<VideoPage />} />
+          <Route path="/tag/:tagParam" element={<TagPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

@@ -1,0 +1,1947 @@
+{
+  "version": 1,
+  "generatedAt": "2026-04-13T01:00:16.084Z",
+  "models": {
+    "categorizer": "google/gemini-3.1-flash-lite-preview",
+    "embeddings": "openai/text-embedding-3-small"
+  },
+  "entries": [
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miieadxeqn22",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "schedule"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "atmosphereconf",
+        "day-2",
+        "room-2301",
+        "day"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miieadwqgy22",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "schedule"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "atmosphereconf",
+        "day-2",
+        "performance-theater",
+        "day"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miaef2b4mh2h",
+      "group": "protocol-philosophy",
+      "tags": [
+        "decentralization",
+        "vision"
+      ],
+      "topics": [
+        "protocol-design"
+      ],
+      "keywords": [
+        "rewilding",
+        "atproto",
+        "internet",
+        "bringing"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miaec7exqi25",
+      "group": "community-culture",
+      "tags": [
+        "creativity",
+        "sustainability"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "artist",
+        "vision",
+        "atmosphere",
+        "affordances",
+        "atmosphereconf"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miadvkvhfv2h",
+      "group": "security-privacy",
+      "tags": [
+        "security",
+        "testing"
+      ],
+      "topics": [
+        "network-security"
+      ],
+      "keywords": [
+        "did-plc",
+        "war-games",
+        "identity",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miadd43al32c",
+      "group": "science-research",
+      "tags": [
+        "data",
+        "publishing"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "metadata",
+        "scientific-data",
+        "atproto",
+        "atmosphereconf",
+        "atscience"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miadb23fme2a",
+      "group": "interoperability",
+      "tags": [
+        "podcasts",
+        "integration"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "interoperability",
+        "atmosphere",
+        "media",
+        "affordances",
+        "astronomy"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miacona6fc2e",
+      "group": "security-privacy",
+      "tags": [
+        "transparency",
+        "accountability"
+      ],
+      "topics": [
+        "data-integrity"
+      ],
+      "keywords": [
+        "logs",
+        "records",
+        "collections",
+        "atproto",
+        "account"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miacmwnd2z2z",
+      "group": "developer-tools",
+      "tags": [
+        "rust",
+        "development"
+      ],
+      "topics": [
+        "developer-experience"
+      ],
+      "keywords": [
+        "jacquard",
+        "atproto",
+        "sdk",
+        "bringing"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miacmdq4sm2a",
+      "group": "developer-tools",
+      "tags": [
+        "product",
+        "security"
+      ],
+      "topics": [
+        "software-lifecycle"
+      ],
+      "keywords": [
+        "bluesky",
+        "preview",
+        "deployment",
+        "centralized"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miac5ez6a22r",
+      "group": "user-experience",
+      "tags": [
+        "client",
+        "curation"
+      ],
+      "topics": [
+        "interface-design"
+      ],
+      "keywords": [
+        "skylimit",
+        "web-client",
+        "newspaper",
+        "ai-saturated",
+        "blacksky"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miac3urhgt23",
+      "group": "developer-tools",
+      "tags": [
+        "graphql",
+        "api"
+      ],
+      "topics": [
+        "data-querying"
+      ],
+      "keywords": [
+        "atproto",
+        "development",
+        "applications"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miac22soys22",
+      "group": "protocol-philosophy",
+      "tags": [
+        "design",
+        "theory"
+      ],
+      "topics": [
+        "protocol-design"
+      ],
+      "keywords": [
+        "affordances",
+        "atmosphere",
+        "media",
+        "report"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miabh2g67c2c",
+      "group": "infrastructure",
+      "tags": [
+        "scaling",
+        "performance"
+      ],
+      "topics": [
+        "system-architecture"
+      ],
+      "keywords": [
+        "atmosphere",
+        "load",
+        "affordances",
+        "media"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miabfvrtei26",
+      "group": "infrastructure",
+      "tags": [
+        "abstraction",
+        "architecture"
+      ],
+      "topics": [
+        "system-design"
+      ],
+      "keywords": [
+        "appview",
+        "atproto",
+        "viewsift",
+        "blousques"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia7iun75l2x",
+      "group": "artificial-intelligence",
+      "tags": [
+        "search",
+        "algorithms"
+      ],
+      "topics": [
+        "information-retrieval"
+      ],
+      "keywords": [
+        "keywords",
+        "embeddings",
+        "data",
+        "feeds",
+        "accidentally"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia7dt6fnp2m",
+      "group": "protocol-philosophy",
+      "tags": [
+        "design",
+        "philosophy"
+      ],
+      "topics": [
+        "protocol-design"
+      ],
+      "keywords": [
+        "atproto",
+        "bookhive",
+        "chive"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia74qg3622a",
+      "group": "interoperability",
+      "tags": [
+        "bridging",
+        "connectivity"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "bridgy",
+        "federation",
+        "bluesky",
+        "infrastructure"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia5q5vu4q2h",
+      "group": "user-experience",
+      "tags": [
+        "showcase",
+        "web"
+      ],
+      "topics": [
+        "interface-design"
+      ],
+      "keywords": [
+        "webtiles",
+        "demo",
+        "skysquare",
+        "app"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia5mbp4tf22",
+      "group": "community-culture",
+      "tags": [
+        "social",
+        "future"
+      ],
+      "topics": [
+        "social-media-trends"
+      ],
+      "keywords": [
+        "weird",
+        "social-media",
+        "social",
+        "future"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia5khdija2h",
+      "group": "protocol-philosophy",
+      "tags": [
+        "governance",
+        "decentralization"
+      ],
+      "topics": [
+        "protocol-design"
+      ],
+      "keywords": [
+        "governance",
+        "hard-decentralization",
+        "decentralized",
+        "sovereignty"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia3vqrg4r23",
+      "group": "infrastructure",
+      "tags": [
+        "gaming",
+        "sovereignty"
+      ],
+      "topics": [
+        "decentralized-infrastructure"
+      ],
+      "keywords": [
+        "data-sovereignty",
+        "atproto",
+        "industry",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia3vm5oyd2u",
+      "group": "security-privacy",
+      "tags": [
+        "trust-and-safety",
+        "open-source"
+      ],
+      "topics": [
+        "community-safety"
+      ],
+      "keywords": [
+        "coop",
+        "infrastructure",
+        "social",
+        "open"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia3svkvjw22",
+      "group": "community-culture",
+      "tags": [
+        "community",
+        "decentralization"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "furrylist",
+        "landlords",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mia26ffz2j2c",
+      "group": "security-privacy",
+      "tags": [
+        "moderation",
+        "community"
+      ],
+      "topics": [
+        "community-safety"
+      ],
+      "keywords": [
+        "skywatch",
+        "lessons",
+        "beyond",
+        "blacksky"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7zxhekcu2d",
+      "group": "artificial-intelligence",
+      "tags": [
+        "ai",
+        "decentralization"
+      ],
+      "topics": [
+        "emerging-tech"
+      ],
+      "keywords": [
+        "atproto",
+        "development",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7ztge2sf2h",
+      "group": "user-experience",
+      "tags": [
+        "design",
+        "web"
+      ],
+      "topics": [
+        "interface-design"
+      ],
+      "keywords": [
+        "social-web",
+        "ux",
+        "social",
+        "future"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7tqadgv22d",
+      "group": "developer-tools",
+      "tags": [
+        "components",
+        "ui"
+      ],
+      "topics": [
+        "interface-design"
+      ],
+      "keywords": [
+        "social-components",
+        "library",
+        "community",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7tcodsqu2t",
+      "group": "security-privacy",
+      "tags": [
+        "moderation",
+        "safety"
+      ],
+      "topics": [
+        "community-safety"
+      ],
+      "keywords": [
+        "blacksky",
+        "tools",
+        "community",
+        "beyond"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7tbwgymp25",
+      "group": "community-culture",
+      "tags": [
+        "cooperation",
+        "strategy"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "competition",
+        "success",
+        "building",
+        "community"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7rvqdpj722",
+      "group": "protocol-philosophy",
+      "tags": [
+        "computing",
+        "manifesto"
+      ],
+      "topics": [
+        "future-tech"
+      ],
+      "keywords": [
+        "resonant-computing",
+        "fireside",
+        "artist",
+        "atproto"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7rpxijg725",
+      "group": "security-privacy",
+      "tags": [
+        "privacy",
+        "community"
+      ],
+      "topics": [
+        "data-protection"
+      ],
+      "keywords": [
+        "decentralized-network",
+        "privacy",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7q5mjlbe2c",
+      "group": "user-experience",
+      "tags": [
+        "localization",
+        "ui"
+      ],
+      "topics": [
+        "accessibility"
+      ],
+      "keywords": [
+        "blousques",
+        "bluesky",
+        "translation",
+        "beyond"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7pxl6xkz22",
+      "group": "community-culture",
+      "tags": [
+        "moderation",
+        "community"
+      ],
+      "topics": [
+        "community-safety"
+      ],
+      "keywords": [
+        "bluenotes",
+        "atproto",
+        "business"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7pjfdkhv2b",
+      "group": "protocol-philosophy",
+      "tags": [
+        "future",
+        "vision"
+      ],
+      "topics": [
+        "future-tech"
+      ],
+      "keywords": [
+        "future",
+        "loading",
+        "social"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7ok5zmuk2k",
+      "group": "community-culture",
+      "tags": [
+        "accessibility",
+        "globalization"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "non-english",
+        "users",
+        "social",
+        "000"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7ofq7ob72a",
+      "group": "community-culture",
+      "tags": [
+        "funding",
+        "growth"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "graze",
+        "lessons",
+        "social",
+        "000"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7o5amqqx2d",
+      "group": "security-privacy",
+      "tags": [
+        "identity",
+        "sovereignty"
+      ],
+      "topics": [
+        "data-protection"
+      ],
+      "keywords": [
+        "ssi",
+        "atproto",
+        "crowdsourced"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7mb4jbag23",
+      "group": "infrastructure",
+      "tags": [
+        "tangled",
+        "development"
+      ],
+      "topics": [
+        "system-architecture"
+      ],
+      "keywords": [
+        "lewis-end",
+        "infrastructure",
+        "blaine",
+        "everything"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7ldfbjwe26",
+      "group": "community-culture",
+      "tags": [
+        "journalism",
+        "media"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "news",
+        "atproto",
+        "building",
+        "protocol"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7lapdbjc2t",
+      "group": "community-culture",
+      "tags": [
+        "organizing",
+        "system-change"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "roomy",
+        "activism",
+        "building",
+        "community"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7kaogqjs22",
+      "group": "developer-tools",
+      "tags": [
+        "browser",
+        "npm"
+      ],
+      "topics": [
+        "developer-experience"
+      ],
+      "keywords": [
+        "npmx",
+        "tooling",
+        "applications",
+        "architecture"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7jorroaa2h",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "opening"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "day-2",
+        "remarks",
+        "day",
+        "atmosphereconf"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi7jhwzagl2n",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "opening"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "day-2",
+        "remarks",
+        "day",
+        "atmosphereconf"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miieadx2dj22",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "schedule"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "atmosphereconf",
+        "day-1",
+        "room-2301",
+        "day"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miieadwgvz22",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "schedule"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "atmosphereconf",
+        "day-1",
+        "performance-theater",
+        "day"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miighlz53o22",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "schedule"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "atmosphereconf",
+        "day-2",
+        "great-hall",
+        "day"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5wnpkchp2z",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "bonus"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "bonus",
+        "unscheduled",
+        "blank",
+        "creators"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5uqr2spg2l",
+      "group": "science-research",
+      "tags": [
+        "funding",
+        "social-data"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "hypercerts",
+        "atproto",
+        "ownership",
+        "bringing"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5unzkbat27",
+      "group": "community-culture",
+      "tags": [
+        "journalism",
+        "algorithms"
+      ],
+      "topics": [
+        "social-media-trends"
+      ],
+      "keywords": [
+        "media",
+        "algorithms",
+        "era",
+        "aggregation"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5unhqisv22",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "misc"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "blank",
+        "placeholder",
+        "blaine",
+        "bonus"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5stzyxji2e",
+      "group": "infrastructure",
+      "tags": [
+        "vod",
+        "streaming"
+      ],
+      "topics": [
+        "system-architecture"
+      ],
+      "keywords": [
+        "streamplace",
+        "video",
+        "atproto",
+        "creator"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5spj6izy2a",
+      "group": "infrastructure",
+      "tags": [
+        "architecture",
+        "design"
+      ],
+      "topics": [
+        "system-architecture"
+      ],
+      "keywords": [
+        "phoenix",
+        "system",
+        "atproto",
+        "behind"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5sn7zmfy23",
+      "group": "community-culture",
+      "tags": [
+        "journalism",
+        "freedom"
+      ],
+      "topics": [
+        "social-media-trends"
+      ],
+      "keywords": [
+        "press",
+        "protocols",
+        "algorithms",
+        "atprotocol"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5s5mqmgj2r",
+      "group": "artificial-intelligence",
+      "tags": [
+        "journalism",
+        "transparency"
+      ],
+      "topics": [
+        "community-safety"
+      ],
+      "keywords": [
+        "pollen",
+        "ai",
+        "feed",
+        "algorithms",
+        "atproto"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5s4foj7h2a",
+      "group": "community-culture",
+      "tags": [
+        "community",
+        "calendar"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "oaklog",
+        "oakland",
+        "community",
+        "beyond"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5s2x6tkd2d",
+      "group": "infrastructure",
+      "tags": [
+        "data",
+        "government"
+      ],
+      "topics": [
+        "decentralized-infrastructure"
+      ],
+      "keywords": [
+        "fire-service",
+        "data-walls",
+        "era",
+        "aggregation"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5rnhjugb2h",
+      "group": "security-privacy",
+      "tags": [
+        "encryption",
+        "messaging"
+      ],
+      "topics": [
+        "data-protection"
+      ],
+      "keywords": [
+        "e2ee",
+        "solidarity",
+        "social",
+        "community"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5rm4y7ts2b",
+      "group": "community-culture",
+      "tags": [
+        "open-source",
+        "social"
+      ],
+      "topics": [
+        "social-media-trends"
+      ],
+      "keywords": [
+        "future",
+        "social",
+        "designing"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5rl4r4a725",
+      "group": "interoperability",
+      "tags": [
+        "bridging",
+        "migration"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "sky-follower-bridge",
+        "bluesky",
+        "beyond"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5r2rp7a62e",
+      "group": "protocol-philosophy",
+      "tags": [
+        "decentralization",
+        "analysis"
+      ],
+      "topics": [
+        "protocol-design"
+      ],
+      "keywords": [
+        "bluesky",
+        "decentralized",
+        "beyond"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5qzkwfe42z",
+      "group": "community-culture",
+      "tags": [
+        "social",
+        "platform"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "w-social",
+        "overview",
+        "social",
+        "designing"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5qywid6z25",
+      "group": "community-culture",
+      "tags": [
+        "growth",
+        "social"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "open-social",
+        "users",
+        "social",
+        "app"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5q57diht27",
+      "group": "user-experience",
+      "tags": [
+        "trails",
+        "discovery"
+      ],
+      "topics": [
+        "interface-design"
+      ],
+      "keywords": [
+        "semble",
+        "magic",
+        "lessons",
+        "atproto"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5q4ey4232y",
+      "group": "artificial-intelligence",
+      "tags": [
+        "ai",
+        "documentation"
+      ],
+      "topics": [
+        "developer-experience"
+      ],
+      "keywords": [
+        "hallucination",
+        "atproto",
+        "agents",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5q3oibtu2i",
+      "group": "community-culture",
+      "tags": [
+        "social",
+        "platform"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "gander-social",
+        "why",
+        "social",
+        "000"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5mvmovsn2i",
+      "group": "conference-logistics",
+      "tags": [
+        "report",
+        "summary"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "atmosphere",
+        "2026",
+        "atmosphereconf",
+        "atscience"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5lexqbqf2z",
+      "group": "infrastructure",
+      "tags": [
+        "public-interest",
+        "infrastructure"
+      ],
+      "topics": [
+        "decentralized-infrastructure"
+      ],
+      "keywords": [
+        "atproto",
+        "public-good",
+        "build"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5ldvd46r2i",
+      "group": "developer-tools",
+      "tags": [
+        "expo",
+        "application"
+      ],
+      "topics": [
+        "developer-experience"
+      ],
+      "keywords": [
+        "protocol",
+        "product",
+        "atproto",
+        "build"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5lb763vn2j",
+      "group": "security-privacy",
+      "tags": [
+        "security",
+        "tee"
+      ],
+      "topics": [
+        "data-protection"
+      ],
+      "keywords": [
+        "account-logic",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5k3brfax2b",
+      "group": "user-experience",
+      "tags": [
+        "client",
+        "user-choice"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "growth",
+        "atproto",
+        "build"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5jrjmk6y2n",
+      "group": "community-culture",
+      "tags": [
+        "geopolitics",
+        "risk"
+      ],
+      "topics": [
+        "social-media-trends"
+      ],
+      "keywords": [
+        "open-social",
+        "geopolitical",
+        "open",
+        "social"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5jmsg6kn2m",
+      "group": "security-privacy",
+      "tags": [
+        "consent",
+        "cryptography"
+      ],
+      "topics": [
+        "data-protection"
+      ],
+      "keywords": [
+        "privacy",
+        "ethics",
+        "atproto",
+        "account"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5itmi65s2z",
+      "group": "user-experience",
+      "tags": [
+        "feeds",
+        "web"
+      ],
+      "topics": [
+        "interface-design"
+      ],
+      "keywords": [
+        "websites",
+        "feeds",
+        "era",
+        "aggregation"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5hza73vs2z",
+      "group": "security-privacy",
+      "tags": [
+        "attestation",
+        "verification"
+      ],
+      "topics": [
+        "data-integrity"
+      ],
+      "keywords": [
+        "sattestations",
+        "security",
+        "everything",
+        "everywhere"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5hy457fu2r",
+      "group": "infrastructure",
+      "tags": [
+        "pds",
+        "serverless"
+      ],
+      "topics": [
+        "decentralized-infrastructure"
+      ],
+      "keywords": [
+        "cirrus",
+        "single-user",
+        "infrastructure",
+        "atproto"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5hx4v6cr26",
+      "group": "protocol-philosophy",
+      "tags": [
+        "sovereignty",
+        "policy"
+      ],
+      "topics": [
+        "social-media-trends"
+      ],
+      "keywords": [
+        "digital-sovereignty",
+        "global",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5c65iee42h",
+      "group": "user-experience",
+      "tags": [
+        "feeds",
+        "bluesky"
+      ],
+      "topics": [
+        "interface-design"
+      ],
+      "keywords": [
+        "custom-feeds",
+        "landscape",
+        "bluesky",
+        "beyond"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5bya72ub2d",
+      "group": "community-culture",
+      "tags": [
+        "journalism",
+        "discussion"
+      ],
+      "topics": [
+        "social-media-trends"
+      ],
+      "keywords": [
+        "news",
+        "creators",
+        "ai-saturated",
+        "algorithms"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5bcpyqg32a",
+      "group": "infrastructure",
+      "tags": [
+        "community",
+        "infrastructure"
+      ],
+      "topics": [
+        "decentralized-infrastructure"
+      ],
+      "keywords": [
+        "bluesky",
+        "beyond",
+        "centralized"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5ag3scgk2k",
+      "group": "artificial-intelligence",
+      "tags": [
+        "ai",
+        "future"
+      ],
+      "topics": [
+        "emerging-tech"
+      ],
+      "keywords": [
+        "at-protocol",
+        "ai",
+        "atproto",
+        "agents"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5aarspma27",
+      "group": "community-culture",
+      "tags": [
+        "media",
+        "creator-economy"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "video",
+        "creators",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi5a2y3tej2z",
+      "group": "community-culture",
+      "tags": [
+        "culture",
+        "kpop"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "kpop",
+        "listening",
+        "everything",
+        "everywhere"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi56pnvulh2o",
+      "group": "infrastructure",
+      "tags": [
+        "lexicon",
+        "enterprise"
+      ],
+      "topics": [
+        "system-architecture"
+      ],
+      "keywords": [
+        "data",
+        "enterprise",
+        "building",
+        "atproto"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi56n6j2g22d",
+      "group": "community-culture",
+      "tags": [
+        "collaboration",
+        "chat"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "group-chat",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi56m3hnrq2z",
+      "group": "community-culture",
+      "tags": [
+        "economics",
+        "media"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "sovereign-media",
+        "roadmap",
+        "atproto",
+        "atprotocol"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi56l4hpil2x",
+      "group": "community-culture",
+      "tags": [
+        "collaboration",
+        "chat"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "group-chat",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi54oonum62b",
+      "group": "community-culture",
+      "tags": [
+        "community",
+        "lessons"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "groundings",
+        "siblings",
+        "community",
+        "000"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi54nec66s2w",
+      "group": "infrastructure",
+      "tags": [
+        "business",
+        "framework"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "sustainability",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi54lyc5ts25",
+      "group": "community-culture",
+      "tags": [
+        "journalism",
+        "federation"
+      ],
+      "topics": [
+        "social-media-trends"
+      ],
+      "keywords": [
+        "aggregation",
+        "federated",
+        "ai-saturated",
+        "algorithms"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi54jqrm372z",
+      "group": "infrastructure",
+      "tags": [
+        "landslide",
+        "holdfast"
+      ],
+      "topics": [
+        "system-architecture"
+      ],
+      "keywords": [
+        "infrastructure",
+        "tools",
+        "building",
+        "bridgy"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miieadw52j22",
+      "group": "conference-logistics",
+      "tags": [
+        "event",
+        "schedule"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "atmosphereconf",
+        "day-1",
+        "great-hall",
+        "day"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi3cjemc6a27",
+      "group": "conference-logistics",
+      "tags": [
+        "impromptu",
+        "session"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "panproto",
+        "everything",
+        "everywhere"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi3bf7s6zn27",
+      "group": "conference-logistics",
+      "tags": [
+        "impromptu",
+        "session"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "everything",
+        "session",
+        "everywhere"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi3ar75zqs23",
+      "group": "conference-logistics",
+      "tags": [
+        "impromptu",
+        "session"
+      ],
+      "topics": [
+        "conference-management"
+      ],
+      "keywords": [
+        "blaine",
+        "everything",
+        "everywhere"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi37ha3edb23",
+      "group": "protocol-philosophy",
+      "tags": [
+        "decentralization",
+        "analysis"
+      ],
+      "topics": [
+        "protocol-design"
+      ],
+      "keywords": [
+        "bluesky",
+        "decentralized",
+        "beyond"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi36lcxgce2b",
+      "group": "science-research",
+      "tags": [
+        "data",
+        "memetics"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "community-archive",
+        "narrative",
+        "social",
+        "community"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mipbxjavnf2m",
+      "group": "science-research",
+      "tags": [
+        "data",
+        "memetics"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "community-archive",
+        "narrative",
+        "community",
+        "social"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi35eplsua23",
+      "group": "science-research",
+      "tags": [
+        "research",
+        "social-media"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "atmosphere",
+        "study",
+        "affordances",
+        "commons"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi34ps3oym2i",
+      "group": "science-research",
+      "tags": [
+        "research",
+        "synthesis"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "crowdsourced",
+        "atproto",
+        "research"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mipbwdhy3v2m",
+      "group": "science-research",
+      "tags": [
+        "research",
+        "synthesis"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "crowdsourced",
+        "atproto",
+        "research"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi33ycoo5d2a",
+      "group": "science-research",
+      "tags": [
+        "science",
+        "social-media"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "future",
+        "science",
+        "social"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mipbvfgsbv2m",
+      "group": "community-culture",
+      "tags": [
+        "migration",
+        "lessons"
+      ],
+      "topics": [
+        "ecosystem-growth"
+      ],
+      "keywords": [
+        "bluesky",
+        "party",
+        "beyond"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mipbufh6gf2m",
+      "group": "science-research",
+      "tags": [
+        "education",
+        "computation"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "atmosphere",
+        "commons",
+        "affordances",
+        "atmosphereconf"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi2wu5u5rs2i",
+      "group": "science-research",
+      "tags": [
+        "astronomy",
+        "ecosystem"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "astrosky",
+        "home",
+        "bluesky",
+        "beyond"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi2u6pl6ah2z",
+      "group": "user-experience",
+      "tags": [
+        "context",
+        "service"
+      ],
+      "topics": [
+        "interface-design"
+      ],
+      "keywords": [
+        "skysquare",
+        "context",
+        "viewsift",
+        "bluesky"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi2tfsbq4p25",
+      "group": "community-culture",
+      "tags": [
+        "wisdom",
+        "collaboration"
+      ],
+      "topics": [
+        "community-building"
+      ],
+      "keywords": [
+        "seams",
+        "making",
+        "community",
+        "archive"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi2son7re62m",
+      "group": "community-culture",
+      "tags": [
+        "intelligence",
+        "division"
+      ],
+      "topics": [
+        "community-safety"
+      ],
+      "keywords": [
+        "viewsift",
+        "collective",
+        "social",
+        "atproto"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi2ryxrnin2a",
+      "group": "science-research",
+      "tags": [
+        "reproducibility",
+        "reviews"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "automation",
+        "papers",
+        "ai-saturated",
+        "algorithms"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mipbt7pzjf2m",
+      "group": "science-research",
+      "tags": [
+        "preprints",
+        "decentralization"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "chive",
+        "atproto",
+        "building"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mipbrr6lfv2m",
+      "group": "science-research",
+      "tags": [
+        "research",
+        "app"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "lea",
+        "researchers",
+        "social",
+        "atproto"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mipbp6eycf2m",
+      "group": "science-research",
+      "tags": [
+        "knowledge",
+        "network"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "semble",
+        "research",
+        "atproto",
+        "crowdsourced"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi2jdevvu626",
+      "group": "science-research",
+      "tags": [
+        "modular",
+        "science"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "keynote",
+        "matsulab",
+        "future",
+        "social"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3mi2ikg6gij26",
+      "group": "science-research",
+      "tags": [
+        "science",
+        "event"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "atscience",
+        "atmosphereconf",
+        "day"
+      ]
+    },
+    {
+      "uri": "at://did:plc:rbvrr34edl5ddpuwcubjiost/place.stream.video/3miieadvruo22",
+      "group": "science-research",
+      "tags": [
+        "science",
+        "event"
+      ],
+      "topics": [
+        "open-science"
+      ],
+      "keywords": [
+        "atscience",
+        "full-day",
+        "atmosphereconf",
+        "day"
+      ]
+    }
+  ]
+}

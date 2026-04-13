@@ -4,7 +4,7 @@ export function Skeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'rounded-xl bg-surface/80 before:absolute before:inset-0 before:animate-pulse before:rounded-xl before:bg-white/5',
+        'rounded-lg bg-surface/45 before:absolute before:inset-0 before:animate-pulse before:rounded-lg before:bg-text/6',
         'relative overflow-hidden',
         className,
       )}

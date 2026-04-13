@@ -9,23 +9,23 @@ import { useVideos } from '@/state/videos-context'
 export function SearchPage() {
   const [query, setQuery] = useState<string>('')
   const { talks, loading, error, refresh } = useVideos()
+  const trimmedQuery = query.trim()
 
   const filteredTalks = useMemo(() => {
-    const normalized = query.trim().toLowerCase()
+    const normalized = trimmedQuery.toLowerCase()
     if (!normalized) {
       return talks
     }
 
     return talks.filter((talk) => talk.title.toLowerCase().includes(normalized))
-  }, [talks, query])
+  }, [talks, trimmedQuery])
 
   return (
-    <div className="space-y-5">
-      <header className="glass-panel animate-rise rounded-2xl p-5 md:p-6">
-        <p className="text-xs uppercase tracking-[0.16em] text-muted">Instant Filter</p>
-        <h2 className="mt-2 text-xl font-semibold text-text md:text-2xl">Search Talks</h2>
+    <div className="space-y-7 md:space-y-10" aria-busy={loading}>
+      <header className="space-y-4">
+        <h1 className="text-2xl font-semibold text-text">Search Talks</h1>
 
-        <label className="glass-panel mt-4 flex min-h-11 items-center gap-3 rounded-xl border-line/70 px-3">
+        <label className="flex min-h-11 items-center gap-3 rounded-lg border border-line/45 bg-surface/80 px-3 focus-within:border-line/60 focus-within:ring-2 focus-within:ring-text/30">
           <Search className="h-4 w-4 text-muted" />
           <span className="sr-only">Search by title</span>
           <input
@@ -34,11 +34,17 @@ export function SearchPage() {
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by title"
             className="h-11 w-full bg-transparent text-sm text-text outline-none placeholder:text-muted"
+            autoComplete="off"
           />
         </label>
       </header>
 
-      {loading ? <TalkGridSkeleton /> : null}
+      {loading ? (
+        <div role="status" aria-live="polite">
+          <span className="sr-only">Loading talks</span>
+          <TalkGridSkeleton />
+        </div>
+      ) : null}
 
       {!loading && error ? (
         <ErrorPanel
@@ -49,7 +55,7 @@ export function SearchPage() {
       ) : null}
 
       {!loading && !error && filteredTalks.length === 0 ? (
-        <section className="glass-panel rounded-2xl p-6">
+        <section className="rounded-lg border border-line/45 bg-surface/80 p-5">
           <h3 className="text-base font-semibold text-text">No results</h3>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             Try a different keyword or remove filters to explore all talks.
@@ -58,10 +64,16 @@ export function SearchPage() {
       ) : null}
 
       {!loading && !error && filteredTalks.length > 0 ? (
-        <section className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4 md:gap-5">
-          {filteredTalks.map((talk, index) => (
-            <TalkCard key={talk.uri} talk={talk} index={index} />
-          ))}
+        <section className="space-y-3">
+          <h2 className="text-sm font-medium text-muted">Results</h2>
+          <p className="text-sm text-muted">
+            {filteredTalks.length} result{filteredTalks.length === 1 ? '' : 's'}
+          </p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] md:gap-4">
+            {filteredTalks.map((talk, index) => (
+              <TalkCard key={talk.uri} talk={talk} featured={index === 0 && trimmedQuery.length > 0} />
+            ))}
+          </div>
         </section>
       ) : null}
     </div>

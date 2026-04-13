@@ -29,9 +29,11 @@ function NavItem({ label, icon: Icon, ...props }: NavLinkProps & { label: string
       {...props}
       className={({ isActive }) =>
         cn(
-          'group min-h-11 rounded-xl border border-transparent px-3 py-2 text-xs text-muted transition-all duration-200 hover:text-text',
-          'flex flex-1 items-center justify-center gap-2 md:w-full md:justify-start md:px-4 md:text-sm',
-          isActive && 'glass-panel text-text shadow-glass',
+          'flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-[background-color,color,border-color] md:justify-start md:px-3.5',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/35 md:text-sm',
+          isActive
+            ? 'border border-accent/45 bg-surface/80 text-accent'
+            : 'border border-transparent text-muted hover:border-line/45 hover:bg-surface/70 hover:text-text',
         )
       }
     >
@@ -43,30 +45,59 @@ function NavItem({ label, icon: Icon, ...props }: NavLinkProps & { label: string
 
 export function AppShell({ children }: PropsWithChildren) {
   return (
-    <div className="relative min-h-svh overflow-x-hidden">
-      <div className="aurora animate-aurora" aria-hidden="true" />
-      <div className="noise-overlay animate-noise" aria-hidden="true" />
+    <div className="relative isolate min-h-svh bg-bg">
+      <header className="sticky top-0 z-10 border-b border-line/45 bg-surface/80 supports-[backdrop-filter]:backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-3 py-2.5 sm:px-4 md:px-6 md:py-3">
+          <p className="text-base font-bold tracking-[0.01em] text-text md:text-lg">Atmosphere VODs</p>
 
-      <div className="relative z-10 mx-auto flex min-h-svh w-full max-w-7xl pb-24 md:pb-0">
-        <aside className="hidden w-64 shrink-0 p-4 md:block lg:p-6">
-          <div className="glass-panel sticky top-6 rounded-2xl p-4">
-            <h1 className="text-lg font-semibold text-text">Atmosphere VODs</h1>
-            <p className="mt-2 max-w-[22ch] text-sm leading-relaxed text-muted">
-              Browse every ATmosphereConf 2026 talk in a fast glassy PWA.
-            </p>
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:text-text">
+            Skip to content
+          </a>
 
-            <nav className="mt-6 flex flex-col gap-2">
-              {navItems.map((item) => (
-                <NavItem key={item.to} label={item.label} to={item.to} end={item.end} icon={item.icon} />
-              ))}
-            </nav>
-          </div>
-        </aside>
+          <nav className="hidden items-center gap-1.5 md:flex lg:gap-2" aria-label="Primary">
+            {navItems.map((item) => (
+              <NavItem key={item.to} label={item.label} to={item.to} end={item.end} icon={item.icon} />
+            ))}
+          </nav>
+        </div>
+      </header>
 
-        <main className="w-full p-4 md:p-6 lg:p-8">{children}</main>
-      </div>
+      <main
+        id="main-content"
+        className="relative z-10 mx-auto w-full max-w-5xl px-3 pb-24 pt-7 sm:px-4 md:px-6 md:pb-10 md:pt-10"
+      >
+        {children}
+      </main>
 
-      <nav className="glass-panel fixed inset-x-3 bottom-3 z-20 flex min-h-16 items-center gap-2 rounded-2xl px-2 py-2 md:hidden">
+      <footer className="relative z-10 border-t border-line/45 bg-surface/80 supports-[backdrop-filter]:backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-3 py-4 text-xs text-muted sm:px-4 md:flex-row md:items-center md:justify-between md:px-6">
+          <p>Open source · MIT licence</p>
+          <p className="flex items-center gap-3">
+            <a
+              href="https://tangled.sh/@j4ck.xyz/atmosphere-vods"
+              target="_blank"
+              rel="noreferrer"
+              className="underline-offset-4 hover:text-text hover:underline"
+            >
+              Tangled
+            </a>
+            <a
+              href="https://github.com/j4ckxyz/atmosphere-vods"
+              target="_blank"
+              rel="noreferrer"
+              className="underline-offset-4 hover:text-text hover:underline"
+            >
+              GitHub
+            </a>
+          </p>
+          <p>Built for the Streamplace VOD JAM</p>
+        </div>
+      </footer>
+
+      <nav
+        className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-20 flex min-h-16 items-center gap-1.5 rounded-xl border border-line/45 bg-surface/80 px-1.5 py-1.5 supports-[backdrop-filter]:backdrop-blur-md sm:inset-x-3 sm:gap-2 sm:px-2 sm:py-2 md:hidden"
+        aria-label="Bottom tabs"
+      >
         {navItems.map((item) => (
           <NavItem key={item.to} label={item.label} to={item.to} end={item.end} icon={item.icon} />
         ))}

@@ -14,14 +14,68 @@ import type {
 
 const profileCache = new Map<string, Promise<ActorProfile | null>>()
 let pdsUrlPromise: Promise<string> | null = null
+const REQUEST_TIMEOUT_MS = 8_000
+const PROFILE_CONCURRENCY = 6
+
+async function fetchWithTimeout(
+  url: string,
+  init?: RequestInit,
+  timeoutMs: number = REQUEST_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    return await fetch(url, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
 
 async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url)
+  let response: Response
+
+  try {
+    response = await fetchWithTimeout(url)
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Request timed out')
+    }
+
+    throw error
+  }
+
   if (!response.ok) {
     throw new Error(`Request failed (${response.status})`)
   }
 
   return (await response.json()) as T
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> {
+  if (items.length === 0) {
+    return []
+  }
+
+  const results = new Array<R>(items.length)
+  let nextIndex = 0
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex
+      nextIndex += 1
+      results[index] = await mapper(items[index])
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, () => worker()),
+  )
+  return results
 }
 
 export function resolvePdsUrl(): Promise<string> {
@@ -88,7 +142,11 @@ export async function fetchTalks(): Promise<AppTalk[]> {
   )
 
   const uniqueCreators = Array.from(new Set(sorted.map((record) => record.value.creator)))
-  const profiles = await Promise.all(uniqueCreators.map((did) => getCachedProfile(did)))
+  const profiles = await mapWithConcurrency(
+    uniqueCreators,
+    PROFILE_CONCURRENCY,
+    (did) => getCachedProfile(did),
+  )
   const profileMap = new Map(uniqueCreators.map((did, index) => [did, profiles[index]]))
 
   return sorted.map((record) => {
@@ -104,6 +162,8 @@ export async function fetchTalks(): Promise<AppTalk[]> {
       creatorHandle: profile?.handle,
       durationNs: record.value.duration,
       createdAt: record.value.createdAt,
+      sourceRef: record.value.source?.ref,
+      sourceMimeType: record.value.source?.mimeType,
     }
   })
 }
@@ -111,7 +171,17 @@ export async function fetchTalks(): Promise<AppTalk[]> {
 export async function fetchVideoPlaylist(uri: string): Promise<string> {
   const query = new URLSearchParams({ uri })
   const playlistUrl = `${VOD_PLAYLIST_ENDPOINT}?${query.toString()}`
-  const response = await fetch(playlistUrl)
+  let response: Response
+
+  try {
+    response = await fetchWithTimeout(playlistUrl, undefined, 10_000)
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('Playlist request timed out')
+    }
+
+    throw error
+  }
 
   if (!response.ok) {
     throw new Error(`Unable to load playlist (${response.status})`)
@@ -124,4 +194,8 @@ export async function fetchVideoPlaylist(uri: string): Promise<string> {
   }
 
   return playlistUrl
+}
+
+export function getArchiveBlobUrl(sourceRef: string): string {
+  return `https://vod-beta.stream.place/xrpc/com.atproto.sync.getBlob?did=${encodeURIComponent(REPO_DID)}&cid=${encodeURIComponent(sourceRef)}`
 }

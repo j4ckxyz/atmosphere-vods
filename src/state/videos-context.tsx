@@ -39,6 +39,7 @@ export function VideosProvider({ children }: PropsWithChildren) {
           return
         }
         setTalks(nextTalks)
+        setError(null)
       } catch (fetchError) {
         if (!active) {
           return

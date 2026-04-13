@@ -7,7 +7,14 @@ export interface StreamVideoRecord {
     creator: string
     duration: number
     createdAt: string
-    source?: unknown
+    source?: {
+      $type?: string
+      ref?: string
+      mimeType?: string
+      size?: number
+      start?: number
+      end?: number
+    }
     livestream?: {
       uri?: string
     }
@@ -43,4 +50,6 @@ export interface AppTalk {
   creatorHandle?: string
   durationNs: number
   createdAt: string
+  sourceRef?: string
+  sourceMimeType?: string
 }

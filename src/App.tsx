@@ -10,7 +10,7 @@ const VideoPage = lazy(() => import('@/pages/video-page').then((module) => ({ de
 
 function RouteFallback() {
   return (
-    <section className="glass-panel rounded-2xl p-5">
+    <section className="rounded-lg border border-line/45 bg-surface/80 p-5">
       <p className="text-sm text-muted">Loading view...</p>
     </section>
   )

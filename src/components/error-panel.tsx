@@ -10,12 +10,12 @@ interface ErrorPanelProps {
 
 export function ErrorPanel({ title, message, onRetry }: ErrorPanelProps) {
   return (
-    <section className="glass-panel rounded-2xl p-6">
+    <section className="rounded-lg border border-line/45 bg-surface/80 p-5">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-muted" />
         <div>
           <h2 className="text-base font-semibold text-text">{title}</h2>
-          <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-muted">{message}</p>
+          <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-text/85">{message}</p>
         </div>
       </div>
 

@@ -6,7 +6,14 @@ import './index.css'
 import App from './App.tsx'
 import { VideosProvider } from './state/videos-context.tsx'
 
-registerSW({ immediate: true })
+registerSW({
+  immediate: true,
+  onRegisterError: (error) => {
+    if (import.meta.env.DEV) {
+      console.error('Service worker registration failed', error)
+    }
+  },
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

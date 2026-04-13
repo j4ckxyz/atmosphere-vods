@@ -5,18 +5,21 @@ import { useVideos } from '@/state/videos-context'
 
 export function BrowsePage() {
   const { talks, loading, error, refresh } = useVideos()
+  const [featuredTalk, ...remainingTalks] = talks
 
   return (
-    <div className="space-y-5">
-      <header className="glass-panel animate-rise rounded-2xl p-5 md:p-6">
-        <p className="text-xs uppercase tracking-[0.16em] text-muted">ATmosphereConf 2026</p>
-        <h2 className="mt-2 text-xl font-semibold text-text md:text-2xl">Browse Talks</h2>
-        <p className="mt-3 max-w-[64ch] text-sm leading-relaxed text-muted">
-          Freshly sorted by newest publish date, with speaker names resolved when available.
-        </p>
+    <div className="space-y-7 md:space-y-10" aria-busy={loading}>
+      <header className="space-y-2">
+        <h1 className="text-2xl font-semibold text-text">ATmosphereConf 2026 Talks</h1>
+        <p className="text-sm text-muted">Newest first. Tap a talk to watch.</p>
       </header>
 
-      {loading ? <TalkGridSkeleton /> : null}
+      {loading ? (
+        <div role="status" aria-live="polite">
+          <span className="sr-only">Loading talks</span>
+          <TalkGridSkeleton />
+        </div>
+      ) : null}
 
       {!loading && error ? (
         <ErrorPanel
@@ -27,11 +30,25 @@ export function BrowsePage() {
       ) : null}
 
       {!loading && !error ? (
-        <section className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4 md:gap-5">
-          {talks.map((talk, index) => (
-            <TalkCard key={talk.uri} talk={talk} index={index} />
-          ))}
-        </section>
+        <>
+          {featuredTalk ? (
+            <section className="space-y-3 md:space-y-4">
+              <h2 className="text-sm font-medium text-muted">Latest Upload</h2>
+              <TalkCard talk={featuredTalk} featured />
+            </section>
+          ) : null}
+
+          {remainingTalks.length > 0 ? (
+            <section className="space-y-3">
+              <h2 className="text-sm font-medium text-muted">More Talks</h2>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] md:gap-4">
+                {remainingTalks.map((talk) => (
+                  <TalkCard key={talk.uri} talk={talk} />
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </>
       ) : null}
     </div>
   )

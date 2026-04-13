@@ -15,15 +15,15 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
-      manifest: {
-        name: 'Atmosphere VODs',
-        short_name: 'Atmosphere VODs',
-        description:
-          'A minimalist glassy video browser for ATmosphereConf 2026 talks.',
-        theme_color: '#0a1020',
-        background_color: '#060a14',
-        display: 'standalone',
-        start_url: '/',
+        manifest: {
+          name: 'Atmosphere VODs',
+          short_name: 'Atmosphere VODs',
+          description:
+            'A minimalist glassy video browser for ATmosphereConf 2026 talks.',
+          theme_color: '#000000',
+          background_color: '#000000',
+          display: 'standalone',
+          start_url: '/',
         icons: [
           {
             src: '/favicon.svg',

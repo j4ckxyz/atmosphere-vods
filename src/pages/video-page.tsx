@@ -1,13 +1,9 @@
 import {
+  ArrowDownToLine,
   ArrowLeft,
-  Maximize,
-  Minimize,
-  Pause,
-  Play,
-  Volume2,
-  VolumeX,
 } from 'lucide-react'
 import {
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -19,9 +15,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ErrorPanel } from '@/components/error-panel'
 import { Button } from '@/components/ui/button'
-import { fetchVideoPlaylist } from '@/lib/api'
+import { fetchVideoPlaylist, getArchiveBlobUrl } from '@/lib/api'
 import { formatDate, formatDuration, truncateDid } from '@/lib/format'
-import { playHaptic } from '@/lib/haptics'
 import { fromVideoParam } from '@/lib/routes'
 import { useVideos } from '@/state/videos-context'
 
@@ -44,11 +39,12 @@ export function VideoPage() {
 
   const [status, setStatus] = useState<PlaybackStatus>('idle')
   const [error, setError] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const [currentTime, setCurrentTime] = useState<number>(0)
   const [duration, setDuration] = useState<number>(0)
-  const [volume, setVolume] = useState<number>(1)
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
+  const rafRef = useRef<number | null>(null)
+  const [reloadToken, setReloadToken] = useState(0)
+  const [playbackRate, setPlaybackRate] = useState<number>(1)
+  const [playlistUrl, setPlaylistUrl] = useState<string | null>(null)
 
   const resolvedUri = useMemo(
     () => (encodedUri ? fromVideoParam(encodedUri) : undefined),
@@ -57,16 +53,8 @@ export function VideoPage() {
 
   const talk = useMemo(() => talks.find((item) => item.uri === resolvedUri), [talks, resolvedUri])
 
-  useEffect(() => {
-    const onFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement))
-    }
-
-    document.addEventListener('fullscreenchange', onFullscreenChange)
-    return () => {
-      document.removeEventListener('fullscreenchange', onFullscreenChange)
-    }
-  }, [])
+  const playbackElapsed = formatDuration(currentTime * 1_000_000_000)
+  const playbackTotal = formatDuration(duration * 1_000_000_000 || talk?.durationNs || 0)
 
   useEffect(() => {
     if (!resolvedUri || !videoRef.current) {
@@ -96,7 +84,7 @@ export function VideoPage() {
         if (video.canPlayType('application/vnd.apple.mpegurl')) {
           video.src = playlistUrl
         } else {
-          const { default: Hls } = await import('hls.js')
+          const { default: Hls } = await import('hls.js/light')
           if (!Hls.isSupported()) {
             throw new Error('This browser does not support HLS playback.')
           }
@@ -110,6 +98,7 @@ export function VideoPage() {
           hlsRef.current = hls
         }
 
+        setPlaylistUrl(playlistUrl)
         setStatus('ready')
       } catch (loadError) {
         if (cancelled) {
@@ -118,6 +107,7 @@ export function VideoPage() {
 
         const message = loadError instanceof Error ? loadError.message : 'Failed to load video playlist.'
         setError(message)
+        setPlaylistUrl(null)
         setStatus('error')
       }
     }
@@ -133,75 +123,55 @@ export function VideoPage() {
       video.pause()
       video.removeAttribute('src')
       video.load()
+      setPlaylistUrl(null)
     }
-  }, [resolvedUri])
+  }, [resolvedUri, reloadToken])
 
-  const onTogglePlayback = useCallback(async () => {
-    playHaptic()
-    const video = videoRef.current
-    if (!video) {
-      return
-    }
-
-    if (video.paused) {
-      try {
-        await video.play()
-        setIsPlaying(true)
-      } catch {
-        setError('Playback was blocked by the browser. Tap play again to retry.')
-      }
-      return
-    }
-
-    video.pause()
-    setIsPlaying(false)
+  const onRetryPlayback = useCallback(() => {
+    setReloadToken((token) => token + 1)
   }, [])
 
-  const onTimeUpdate = useCallback(() => {
+  const syncPlaybackState = useCallback(() => {
     if (!videoRef.current) {
       return
     }
 
-    setCurrentTime(videoRef.current.currentTime)
-    setDuration(Number.isFinite(videoRef.current.duration) ? videoRef.current.duration : 0)
-    setIsPlaying(!videoRef.current.paused)
+    const current = videoRef.current.currentTime
+    const total = Number.isFinite(videoRef.current.duration) ? videoRef.current.duration : 0
+
+    startTransition(() => {
+      setCurrentTime(current)
+      setDuration(total)
+    })
   }, [])
 
-  const onSeek = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const onTimeUpdate = useCallback(() => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current)
+    }
+
+    rafRef.current = requestAnimationFrame(() => {
+      syncPlaybackState()
+      rafRef.current = null
+    })
+  }, [syncPlaybackState])
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [])
+
+  const onSpeedChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
+    const nextRate = Number(event.target.value)
     const video = videoRef.current
     if (!video) {
       return
     }
-
-    const seconds = Number(event.target.value)
-    video.currentTime = seconds
-    setCurrentTime(seconds)
-  }, [])
-
-  const onVolume = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const video = videoRef.current
-    if (!video) {
-      return
-    }
-
-    const nextVolume = Number(event.target.value)
-    video.volume = nextVolume
-    video.muted = nextVolume === 0
-    setVolume(nextVolume)
-  }, [])
-
-  const onToggleFullscreen = useCallback(async () => {
-    const container = playerContainerRef.current
-    if (!container) {
-      return
-    }
-
-    if (!document.fullscreenElement) {
-      await container.requestFullscreen()
-      return
-    }
-
-    await document.exitFullscreen()
+    video.playbackRate = nextRate
+    setPlaybackRate(nextRate)
   }, [])
 
   useEffect(() => {
@@ -252,7 +222,7 @@ export function VideoPage() {
 
   if (!talk && talksLoading) {
     return (
-      <section className="glass-panel rounded-2xl p-5">
+      <section className="rounded-lg border border-line/45 bg-surface/80 p-5">
         <p className="text-sm text-muted">Loading video metadata...</p>
       </section>
     )
@@ -269,28 +239,27 @@ export function VideoPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <Button asChild variant="ghost" className="animate-rise">
+    <div className="space-y-7 md:space-y-10">
+      <Button asChild variant="ghost">
         <Link to="/">
           <ArrowLeft className="h-4 w-4" />
-          Back to browse
+          Back to Browse
         </Link>
       </Button>
 
-      <section className="glass-panel animate-rise rounded-2xl p-4 md:p-6" ref={playerContainerRef}>
-        <div className="relative overflow-hidden rounded-xl border border-line bg-black/30">
+      <section className="space-y-5" ref={playerContainerRef}>
+        <div className="relative overflow-hidden rounded-xl border border-line/45 bg-surface/80">
           <video
             ref={videoRef}
             className="aspect-video w-full"
-            controls={false}
+            controls
             onTimeUpdate={onTimeUpdate}
             onLoadedMetadata={onTimeUpdate}
-            onPause={() => setIsPlaying(false)}
-            onPlay={() => setIsPlaying(true)}
+            playsInline
           />
 
           {status === 'loading' ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+            <div className="absolute inset-0 flex items-center justify-center bg-bg/70">
               <p className="text-sm text-text">Loading stream...</p>
             </div>
           ) : null}
@@ -301,81 +270,65 @@ export function VideoPage() {
             <ErrorPanel
               title="Playback failed"
               message={error ?? 'The video playlist could not be loaded.'}
-              onRetry={() => window.location.reload()}
+              onRetry={onRetryPlayback}
             />
           </div>
         ) : null}
 
         {status !== 'error' && error ? (
-          <p className="mt-3 text-xs text-accent/90" role="status">
+          <p className="mt-3 text-xs text-muted" role="status">
             {error}
           </p>
         ) : null}
 
-        <div className="mt-4 space-y-4">
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              size="icon"
-              variant="secondary"
-              onClick={onTogglePlayback}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
+          <p>
+            {playbackElapsed} / {playbackTotal}
+          </p>
+
+          <label className="flex min-h-11 items-center gap-2">
+            <span>Speed</span>
+            <select
+              value={playbackRate}
+              onChange={onSpeedChange}
+              className="h-11 rounded-lg border border-line/60 bg-surface/80 px-2 text-sm text-text"
             >
-              {isPlaying ? <Pause /> : <Play />}
-            </Button>
+              <option value={0.5}>0.5x</option>
+              <option value={1}>1x</option>
+              <option value={1.25}>1.25x</option>
+              <option value={1.5}>1.5x</option>
+              <option value={2}>2x</option>
+            </select>
+          </label>
+        </div>
 
-            <label className="flex-1">
-              <span className="sr-only">Seek</span>
-              <input
-                type="range"
-                min={0}
-                max={Math.max(duration, 1)}
-                value={Math.min(currentTime, duration || 0)}
-                onChange={onSeek}
-                className="h-11 w-full accent-[oklch(0.78_0.12_205)]"
-              />
-            </label>
-
-            <Button
-              type="button"
-              size="icon"
-              variant="secondary"
-              onClick={onToggleFullscreen}
-              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        <div className="flex flex-wrap items-center gap-3">
+          {playlistUrl ? (
+            <a
+              href={playlistUrl}
+              download={`${talk?.title ?? 'talk'}.m3u8`}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line/60 bg-surface/80 px-3 text-sm text-text transition hover:bg-surface/90"
             >
-              {isFullscreen ? <Minimize /> : <Maximize />}
-            </Button>
-          </div>
+              <ArrowDownToLine className="h-4 w-4" />
+              Download HLS Playlist
+            </a>
+          ) : null}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
-            <p>
-              {formatDuration(currentTime * 1_000_000_000)} /{' '}
-              {formatDuration(duration * 1_000_000_000 || talk?.durationNs || 0)}
-            </p>
-
-            <div className="flex min-h-11 items-center gap-2">
-              {volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              <label>
-                <span className="sr-only">Volume</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={volume}
-                  onChange={onVolume}
-                  className="h-11 w-32 accent-[oklch(0.78_0.12_205)]"
-                />
-              </label>
-            </div>
-
-            <p className="text-xs text-muted md:hidden">Swipe down to dismiss</p>
-          </div>
+          {talk?.sourceRef ? (
+            <a
+              href={getArchiveBlobUrl(talk.sourceRef)}
+              download={`${talk.title}.mp4`}
+              className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line/60 bg-surface/80 px-3 text-sm text-text transition hover:bg-surface/90"
+            >
+              <ArrowDownToLine className="h-4 w-4" />
+              Download Source MP4
+            </a>
+          ) : null}
         </div>
       </section>
 
       {talk ? (
-        <section className="glass-panel animate-rise rounded-2xl p-6" style={{ animationDelay: '80ms' }}>
+        <section className="space-y-3 border-t border-line/40 pt-5">
           <h1 className="text-xl font-semibold leading-tight text-text md:text-2xl">{talk.title}</h1>
           <p className="mt-3 text-sm text-muted">Speaker: {talk.creatorName || truncateDid(talk.creatorDid)}</p>
           <p className="mt-2 text-sm text-muted">

@@ -58,7 +58,9 @@ This updates `public/video-embeddings.json`.
 ### Required env vars for embeddings generation
 
 - `OPENROUTER_API_KEY`
-- optional: `OPENROUTER_EMBEDDING_MODEL` (defaults to `openai/text-embedding-3-small`)
+- optional: `OPENROUTER_EMBEDDING_MODEL` (defaults to `qwen/qwen3-embedding-8b`)
+- optional: `EXISTING_EMBEDDINGS_PATH` for incremental reuse (defaults to current output file)
+- optional: `EMBEDDINGS_OUTPUT_PATH` (defaults to `public/video-embeddings.json`)
 
 ## Cloudflare Pages function search backend
 
@@ -72,7 +74,8 @@ This updates `public/video-embeddings.json`.
 Set this env var in Cloudflare Pages project settings for semantic mode:
 
 - `OPENROUTER_API_KEY`
-- optional: `OPENROUTER_EMBEDDING_MODEL`
+- optional: `OPENROUTER_EMBEDDING_MODEL` (defaults to `qwen/qwen3-embedding-8b`)
+- optional: `EMBEDDINGS_INDEX_URL` (raw URL for externally refreshed index)
 
 If the key is not set, search falls back gracefully to lexical title ranking.
 
@@ -82,6 +85,18 @@ If the key is not set, search falls back gracefully to lexical title ranking.
   from relay + PDS APIs.
 - Those fresh videos are lexical-ranked until you refresh `public/video-embeddings.json`.
 - The UI shows index snapshot time and how many videos are currently embedded.
+
+## GitHub Actions (twice daily incremental refresh)
+
+Workflow file: `.github/workflows/refresh-embeddings.yml`
+
+- Runs every 12 hours and on manual dispatch.
+- Reuses existing vectors from `embeddings-data` branch and embeds only new VOD URIs.
+- Publishes updated `video-embeddings.json` to `embeddings-data` only when changed.
+
+Recommended Cloudflare env for zero-redeploy index updates:
+
+- `EMBEDDINGS_INDEX_URL=https://raw.githubusercontent.com/j4ckxyz/atmosphere-vods/embeddings-data/video-embeddings.json`
 
 ## Deploy to Vercel
 

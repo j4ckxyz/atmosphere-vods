@@ -6,9 +6,17 @@ const PLC_DIRECTORY_URL = 'https://plc.directory'
 const BSKY_RELAY_SYNC_API = 'https://bsky.network'
 const STREAMPLACE_VIDEO_COLLECTION = 'place.stream.video'
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1'
-const EMBEDDING_MODEL = process.env.OPENROUTER_EMBEDDING_MODEL ?? 'openai/text-embedding-3-small'
-const OUTPUT_PATH = path.resolve(process.cwd(), 'public/video-embeddings.json')
+const EMBEDDING_MODEL = process.env.OPENROUTER_EMBEDDING_MODEL ?? 'qwen/qwen3-embedding-8b'
+const OUTPUT_PATH = path.resolve(
+  process.cwd(),
+  process.env.EMBEDDINGS_OUTPUT_PATH ?? 'public/video-embeddings.json',
+)
+const EXISTING_PATH = path.resolve(
+  process.cwd(),
+  process.env.EXISTING_EMBEDDINGS_PATH ?? process.env.EMBEDDINGS_OUTPUT_PATH ?? 'public/video-embeddings.json',
+)
 const TAXONOMY_PATH = path.resolve(process.cwd(), 'src/lib/video-taxonomy.json')
+const EMBEDDING_BATCH_SIZE = Number.parseInt(process.env.EMBEDDING_BATCH_SIZE ?? '64', 10)
 
 function parseEnvFile(content) {
   const vars = {}
@@ -64,6 +72,27 @@ async function fetchJson(url) {
     throw new Error(`Request failed (${response.status}) for ${url}`)
   }
   return response.json()
+}
+
+function isFiniteNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
+async function loadExistingIndex() {
+  if (!existsSync(EXISTING_PATH)) {
+    return null
+  }
+
+  const raw = await readFile(EXISTING_PATH, 'utf8')
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed.entries)) {
+      return null
+    }
+    return parsed
+  } catch {
+    return null
+  }
 }
 
 async function callOpenRouter(pathname, body) {
@@ -180,6 +209,22 @@ function toEmbeddingInput(record) {
     .join('\n')
 }
 
+async function embedBatch(inputs) {
+  const embeddingResponse = await callOpenRouter('/embeddings', {
+    model: EMBEDDING_MODEL,
+    input: inputs,
+    input_type: 'search_document',
+  })
+
+  return embeddingResponse.data ?? []
+}
+
+function catalogSignature(entries) {
+  return entries
+    .map((entry) => `${entry.uri}|${entry.sourceRepoDid}|${entry.createdAt ?? ''}|${entry.title}`)
+    .join('\n')
+}
+
 async function main() {
   await loadEnv()
 
@@ -215,27 +260,91 @@ async function main() {
     throw new Error('No video records available for embedding generation')
   }
 
-  const inputs = allRecords.map((record) => toEmbeddingInput(record))
-  const embeddingResponse = await callOpenRouter('/embeddings', {
-    model: EMBEDDING_MODEL,
-    input: inputs,
-    input_type: 'search_document',
-  })
+  const existing = await loadExistingIndex()
+  const canReuseExisting = existing?.model === EMBEDDING_MODEL
+  const existingByUri = new Map(
+    canReuseExisting
+      ? (existing.entries ?? [])
+          .filter((entry) => Array.isArray(entry.embedding) && entry.embedding.length > 0)
+          .map((entry) => [entry.uri, entry])
+      : [],
+  )
 
-  const output = {
-    version: 1,
-    generatedAt: new Date().toISOString(),
-    model: EMBEDDING_MODEL,
-    entries: allRecords.map((record, index) => ({
+  if (existing && !canReuseExisting) {
+    console.log(
+      `Existing index model (${existing.model}) differs from ${EMBEDDING_MODEL}; rebuilding all embeddings`,
+    )
+  }
+
+  const recordsByUri = new Map(allRecords.map((record) => [record.uri, record]))
+  const orderedUris = [...recordsByUri.keys()].sort((left, right) => left.localeCompare(right))
+  const orderedRecords = orderedUris.map((uri) => recordsByUri.get(uri))
+
+  const reuseCandidates = []
+  const missingRecords = []
+
+  for (const record of orderedRecords) {
+    const existingEntry = existingByUri.get(record.uri)
+    if (existingEntry) {
+      reuseCandidates.push({ record, existingEntry })
+    } else {
+      missingRecords.push(record)
+    }
+  }
+
+  const newEmbeddingsByUri = new Map()
+
+  for (let start = 0; start < missingRecords.length; start += EMBEDDING_BATCH_SIZE) {
+    const batchRecords = missingRecords.slice(start, start + EMBEDDING_BATCH_SIZE)
+    const inputs = batchRecords.map((record) => toEmbeddingInput(record))
+    const data = await embedBatch(inputs)
+
+    for (let i = 0; i < batchRecords.length; i += 1) {
+      const embedding = data[i]?.embedding
+      if (!Array.isArray(embedding) || embedding.length === 0) {
+        throw new Error(`Embedding missing for URI ${batchRecords[i].uri}`)
+      }
+      if (!embedding.every((value) => isFiniteNumber(value))) {
+        throw new Error(`Invalid embedding values for URI ${batchRecords[i].uri}`)
+      }
+      newEmbeddingsByUri.set(batchRecords[i].uri, embedding)
+    }
+
+    console.log(
+      `Embedded ${Math.min(start + EMBEDDING_BATCH_SIZE, missingRecords.length)}/${missingRecords.length} new records`,
+    )
+  }
+
+  const nextEntries = orderedRecords.map((record) => {
+    const reused = existingByUri.get(record.uri)
+    const embedding = reused?.embedding ?? newEmbeddingsByUri.get(record.uri)
+    return {
       uri: record.uri,
       sourceRepoDid: record.sourceRepoDid,
       createdAt: record.value?.createdAt,
       title: record.value?.title ?? 'Untitled',
-      embedding: embeddingResponse.data[index]?.embedding ?? [],
-    })),
+      embedding,
+    }
+  })
+
+  const previousSignature = existing ? catalogSignature(existing.entries ?? []) : ''
+  const nextSignature = catalogSignature(nextEntries)
+  const hasCatalogChanges = previousSignature !== nextSignature
+  const hasNewEmbeddings = missingRecords.length > 0
+
+  const output = {
+    version: 1,
+    generatedAt:
+      hasNewEmbeddings || hasCatalogChanges || !existing?.generatedAt
+        ? new Date().toISOString()
+        : existing.generatedAt,
+    model: EMBEDDING_MODEL,
+    entries: nextEntries,
   }
 
   await writeFile(OUTPUT_PATH, `${JSON.stringify(output, null, 2)}\n`, 'utf8')
+  console.log(`Reused embeddings: ${reuseCandidates.length}`)
+  console.log(`New embeddings: ${missingRecords.length}`)
   console.log(`Wrote embeddings to ${OUTPUT_PATH}`)
 }
 

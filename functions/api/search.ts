@@ -25,6 +25,7 @@ interface PagesFunctionContextLike {
   env: {
     OPENROUTER_API_KEY?: string
     OPENROUTER_EMBEDDING_MODEL?: string
+    EMBEDDINGS_INDEX_URL?: string
     ASSETS?: {
       fetch: (request: Request) => Promise<Response>
     }
@@ -253,25 +254,48 @@ async function loadEmbeddingIndex(context: PagesFunctionContextLike): Promise<{ 
     return { index: cachedIndex.index, norms: cachedIndex.norms }
   }
 
-  const assets = context.env.ASSETS
-  if (!assets) {
-    throw new Error('Cloudflare ASSETS binding unavailable')
+  let index: EmbeddingIndex | null = null
+
+  const remoteIndexUrl = context.env.EMBEDDINGS_INDEX_URL
+  if (remoteIndexUrl) {
+    try {
+      const remoteResponse = await fetch(remoteIndexUrl, {
+        headers: {
+          Accept: 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+      })
+
+      if (remoteResponse.ok) {
+        index = (await remoteResponse.json()) as EmbeddingIndex
+      }
+    } catch {
+      index = null
+    }
   }
 
-  const origin = new URL(context.request.url).origin
-  const assetsRequest = new Request(`${origin}/video-embeddings.json`, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-    },
-  })
-  const response = await assets.fetch(assetsRequest)
+  if (!index) {
+    const assets = context.env.ASSETS
+    if (!assets) {
+      throw new Error('Cloudflare ASSETS binding unavailable')
+    }
 
-  if (!response.ok) {
-    throw new Error(`Embeddings asset unavailable (${response.status})`)
+    const origin = new URL(context.request.url).origin
+    const assetsRequest = new Request(`${origin}/video-embeddings.json`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    })
+    const response = await assets.fetch(assetsRequest)
+
+    if (!response.ok) {
+      throw new Error(`Embeddings asset unavailable (${response.status})`)
+    }
+
+    index = (await response.json()) as EmbeddingIndex
   }
 
-  const index = (await response.json()) as EmbeddingIndex
   const norms = (index.entries ?? []).map((entry) => normalizeVector(entry.embedding ?? []))
 
   cachedIndex = {
@@ -289,7 +313,7 @@ async function embedQuery(context: PagesFunctionContextLike, query: string): Pro
     return null
   }
 
-  const model = context.env.OPENROUTER_EMBEDDING_MODEL || 'openai/text-embedding-3-small'
+  const model = context.env.OPENROUTER_EMBEDDING_MODEL || 'qwen/qwen3-embedding-8b'
   const response = await fetch('https://openrouter.ai/api/v1/embeddings', {
     method: 'POST',
     headers: {

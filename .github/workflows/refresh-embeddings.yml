@@ -1,0 +1,75 @@
+name: Refresh Embeddings Index
+
+on:
+  schedule:
+    - cron: '15 */12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-embeddings:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch latest embeddings-data branch
+        run: |
+          git fetch origin embeddings-data || true
+
+      - name: Prepare previous embeddings snapshot
+        run: |
+          mkdir -p .cache
+          if git show-ref --verify --quiet refs/remotes/origin/embeddings-data; then
+            git show origin/embeddings-data:video-embeddings.json > .cache/previous-video-embeddings.json || true
+          fi
+
+      - name: Generate incremental embeddings index
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_EMBEDDING_MODEL: qwen/qwen3-embedding-8b
+          EXISTING_EMBEDDINGS_PATH: .cache/previous-video-embeddings.json
+          EMBEDDINGS_OUTPUT_PATH: video-embeddings.json
+        run: npm run embeddings:generate
+
+      - name: Detect index changes
+        id: diff
+        run: |
+          if [ -f .cache/previous-video-embeddings.json ] && cmp -s .cache/previous-video-embeddings.json video-embeddings.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish embeddings-data branch
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p .out
+          cp video-embeddings.json .out/video-embeddings.json
+          git checkout --orphan embeddings-data
+          git rm -rf . >/dev/null 2>&1 || true
+          cp .out/video-embeddings.json ./video-embeddings.json
+          rm -rf .out
+          git add video-embeddings.json
+          git -c user.name="jack" -c user.email="jack@j4ck.xyz" commit -m "chore: refresh embeddings index"
+          git push --force-with-lease origin embeddings-data
+
+      - name: No changes
+        if: steps.diff.outputs.changed != 'true'
+        run: echo "No embedding updates required."

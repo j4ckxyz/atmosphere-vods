@@ -206,6 +206,38 @@ function asIonosphereTranscripts(
   }))
 }
 
+function normalizeTranscriptText(value: string | undefined): string {
+  if (!value) {
+    return ''
+  }
+
+  return value
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function buildTranscriptPreview(text: string): string[] {
+  if (!text) {
+    return []
+  }
+
+  const sentences = text
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
+
+  if (sentences.length > 0) {
+    return sentences.slice(0, 4)
+  }
+
+  const words = text.split(/\s+/).filter(Boolean)
+  if (words.length === 0) {
+    return []
+  }
+
+  return [words.slice(0, 30).join(' ')]
+}
+
 async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentResult> {
   const [talksRaw, conceptsRaw, annotationsRaw, speakersRaw, transcriptsRaw] = await Promise.all([
     fetchCollection('tv.ionosphere.talk'),
@@ -234,6 +266,7 @@ async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentRe
   )
 
   const topicsByTalkUri = new Map<string, string[]>()
+  const topicMentionCountByTalkUri = new Map<string, Map<string, number>>()
   for (const annotation of asIonosphereAnnotations(annotationsRaw)) {
     const talkUri = annotation.value.talkUri
     const conceptUri = annotation.value.conceptUri
@@ -249,14 +282,24 @@ async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentRe
       list.push(conceptName)
     }
     topicsByTalkUri.set(talkUri, list)
+
+    const mentionMap = topicMentionCountByTalkUri.get(talkUri) ?? new Map<string, number>()
+    mentionMap.set(conceptName, (mentionMap.get(conceptName) ?? 0) + 1)
+    topicMentionCountByTalkUri.set(talkUri, mentionMap)
   }
 
   const speakerByUri = new Map(asIonosphereSpeakers(speakersRaw).map((record) => [record.uri, record]))
-  const transcriptByTalkUri = new Map(
-    asIonosphereTranscripts(transcriptsRaw)
-      .map((record) => [record.value.talkUri, record.value.text ?? record.value.transcript ?? ''] as const)
-      .filter((entry) => Boolean(entry[0] && entry[1])),
-  )
+  const transcriptByTalkUri = new Map<string, string>()
+  for (const transcript of asIonosphereTranscripts(transcriptsRaw)) {
+    const talkUri = transcript.value.talkUri
+    const normalized = normalizeTranscriptText(transcript.value.text ?? transcript.value.transcript)
+    if (!talkUri || !normalized) {
+      continue
+    }
+
+    const existing = transcriptByTalkUri.get(talkUri)
+    transcriptByTalkUri.set(talkUri, existing ? `${existing} ${normalized}` : normalized)
+  }
   const byVodUri = new Map<string, IonosphereEnrichment>()
   const allTopics = new Set<string>()
 
@@ -269,9 +312,15 @@ async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentRe
     }
 
     const topics = (topicsByTalkUri.get(match.uri) ?? []).slice(0, 10)
+    const topicMentions = [...(topicMentionCountByTalkUri.get(match.uri)?.entries() ?? [])]
+      .map(([topic, mentions]) => ({ topic, mentions }))
+      .sort((left, right) => right.mentions - left.mentions || left.topic.localeCompare(right.topic))
+      .slice(0, 8)
     for (const topic of topics) {
       allTopics.add(topic)
     }
+
+    const transcriptText = transcriptByTalkUri.get(match.uri)
 
     let speakerName: string | undefined
     let speakerHandle: string | undefined
@@ -296,7 +345,9 @@ async function buildEnrichment(talks: AppTalk[]): Promise<IonosphereEnrichmentRe
       scheduledAt: match.value.startsAt,
       track: match.value.track || match.value.category,
       topics,
-      transcriptText: transcriptByTalkUri.get(match.uri),
+      topicMentions,
+      transcriptText,
+      transcriptPreview: buildTranscriptPreview(transcriptText ?? ''),
       speakerName,
       speakerHandle,
       speakerAvatar,

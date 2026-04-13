@@ -5,10 +5,13 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { ErrorPanel } from '@/components/error-panel'
 import { TalkCard } from '@/components/talk-card'
 import { TalkGridSkeleton } from '@/components/talk-grid-skeleton'
+import { isAtmosphereTalk } from '@/lib/api'
 import { hapticTap } from '@/lib/haptics'
+import { fetchAtmosphereIonosphereEnrichment } from '@/lib/ionosphere'
 import { searchTalkUris } from '@/lib/semantic-search'
 import { toTagPath } from '@/lib/routes'
 import { getTalkTaxonomyTokens, scoreTalkForQuery } from '@/lib/taxonomy'
+import type { IonosphereEnrichmentResult } from '@/lib/types'
 import { useKeyboard } from '@/lib/use-keyboard'
 import { useVideos } from '@/state/videos-context'
 
@@ -24,6 +27,10 @@ export function SearchPage() {
   const [remoteError, setRemoteError] = useState<string | null>(null)
   const [remoteLoading, setRemoteLoading] = useState<boolean>(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [enrichment, setEnrichment] = useState<IonosphereEnrichmentResult>({
+    byVodUri: new Map(),
+    allTopics: [],
+  })
   const { talks, loading, error, refresh } = useVideos()
   const trimmedQuery = query.trim()
   const prefersReducedMotion =
@@ -56,6 +63,31 @@ export function SearchPage() {
     setRemoteError(null)
     setRemoteLoading(true)
   }
+
+  useEffect(() => {
+    const atmosphereTalks = talks.filter((talk) => isAtmosphereTalk(talk))
+    if (atmosphereTalks.length === 0) {
+      return
+    }
+
+    let active = true
+    fetchAtmosphereIonosphereEnrichment(atmosphereTalks)
+      .then((result) => {
+        if (!active) {
+          return
+        }
+        setEnrichment(result)
+      })
+      .catch(() => {
+        if (active) {
+          setEnrichment({ byVodUri: new Map(), allTopics: [] })
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [talks])
 
   useEffect(() => {
     if (!trimmedQuery || talks.length === 0) {
@@ -132,12 +164,16 @@ export function SearchPage() {
     return talks
       .map((talk) => ({
         talk,
-        score: scoreTalkForQuery(talk, trimmedQuery),
+        score:
+          scoreTalkForQuery(talk, trimmedQuery) +
+          ((enrichment.byVodUri.get(talk.uri)?.transcriptText ?? '').toLowerCase().includes(trimmedQuery.toLowerCase())
+            ? 1
+            : 0),
       }))
       .filter((entry) => entry.score > 0)
       .sort((a, b) => b.score - a.score)
       .map((entry) => entry.talk)
-  }, [trimmedQuery, talks, remoteQuery, remoteUris])
+  }, [trimmedQuery, talks, remoteQuery, remoteUris, enrichment.byVodUri])
 
   const selectedTalkIndex =
     filteredTalks.length > 0 ? Math.min(selectedIndex, filteredTalks.length - 1) : 0
@@ -261,7 +297,7 @@ export function SearchPage() {
         {!loading && !error && trimmedQuery ? (
           <section className="rounded-lg border border-line/45 bg-surface/80 p-4 text-xs text-muted">
             <p>
-              Results combine semantic ranking for all Streamplace VODs with richer AtmosphereConf metadata.
+              Results combine semantic ranking for all Streamplace VODs with richer AtmosphereConf discussion data.
             </p>
             {remoteLoading ? <p className="mt-2">Ranking results...</p> : null}
             {!remoteLoading && remoteMode ? (

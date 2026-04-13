@@ -13,8 +13,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ErrorPanel } from '@/components/error-panel'
 import { Button } from '@/components/ui/button'
-import { fetchTalkByUri, fetchVideoPlaylist, getArchiveBlobUrl } from '@/lib/api'
-import { formatDate, formatDuration, truncateDid } from '@/lib/format'
+import { fetchTalkByUri, fetchVideoPlaylist, getArchiveBlobUrl, isAtmosphereTalk } from '@/lib/api'
+import { formatDate, formatDateTime, formatDuration, truncateDid } from '@/lib/format'
 import {
   hapticBack,
   hapticError,
@@ -22,10 +22,11 @@ import {
   hapticSeek,
   hapticSuccess,
 } from '@/lib/haptics'
+import { fetchAtmosphereIonosphereEnrichment } from '@/lib/ionosphere'
 import { toTagPath, toVideoUriFromParams } from '@/lib/routes'
 import { getTalkTaxonomyTokens } from '@/lib/taxonomy'
 import { useKeyboard } from '@/lib/use-keyboard'
-import type { AppTalk } from '@/lib/types'
+import type { AppTalk, IonosphereEnrichment } from '@/lib/types'
 import { useVideos } from '@/state/videos-context'
 
 type PlaybackStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -51,6 +52,7 @@ export function VideoPage() {
   const [playlistUrl, setPlaylistUrl] = useState<string | null>(null)
   const [resolvedTalk, setResolvedTalk] = useState<AppTalk | null>(null)
   const [metadataLoading, setMetadataLoading] = useState<boolean>(false)
+  const [ionosphere, setIonosphere] = useState<IonosphereEnrichment | null>(null)
 
   const resolvedUri = useMemo(
     () => (didParam && rkeyParam ? toVideoUriFromParams(didParam, rkeyParam) : undefined),
@@ -194,6 +196,31 @@ export function VideoPage() {
       setPlaylistUrl(null)
     }
   }, [resolvedUri, reloadToken])
+
+  useEffect(() => {
+    if (!talk || !isAtmosphereTalk(talk)) {
+      setIonosphere(null)
+      return
+    }
+
+    let active = true
+    fetchAtmosphereIonosphereEnrichment([talk])
+      .then((result) => {
+        if (!active) {
+          return
+        }
+        setIonosphere(result.byVodUri.get(talk.uri) ?? null)
+      })
+      .catch(() => {
+        if (active) {
+          setIonosphere(null)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [talk])
 
   const onRetryPlayback = useCallback(() => {
     hapticPlay()
@@ -458,6 +485,54 @@ export function VideoPage() {
           <p className="mt-2 text-sm text-muted">
             Duration: {formatDuration(talk.durationNs)} • Published {formatDate(talk.createdAt)}
           </p>
+
+          {ionosphere ? (
+            <article className="mt-4 space-y-3 rounded-lg border border-line/45 bg-surface/80 p-4">
+              <h2 className="text-sm font-medium text-text">Discussion</h2>
+              <p className="text-xs text-muted">
+                {ionosphere.room ?? 'Room TBD'} • {ionosphere.track ?? 'Track TBD'}
+                {ionosphere.scheduledAt ? ` • ${formatDateTime(ionosphere.scheduledAt)}` : ''}
+              </p>
+
+              {ionosphere.speakerName ? (
+                <p className="text-xs text-muted">
+                  Featured speaker: {ionosphere.speakerName}
+                  {ionosphere.speakerHandle ? ` (@${ionosphere.speakerHandle})` : ''}
+                </p>
+              ) : null}
+
+              {ionosphere.topicMentions.length > 0 ? (
+                <section className="space-y-2">
+                  <h3 className="text-xs font-medium uppercase tracking-wide text-muted">Reactions</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {ionosphere.topicMentions.map((entry) => (
+                      <Link
+                        key={entry.topic}
+                        to={toTagPath(entry.topic)}
+                        className="inline-flex min-h-11 items-center gap-1 rounded-md border border-line/45 bg-surface/70 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text"
+                      >
+                        <span>{entry.topic}</span>
+                        <span className="text-[11px] text-muted/90">×{entry.mentions}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
+              {ionosphere.transcriptPreview.length > 0 ? (
+                <section className="space-y-2">
+                  <h3 className="text-xs font-medium uppercase tracking-wide text-muted">Transcript highlights</h3>
+                  <div className="space-y-2">
+                    {ionosphere.transcriptPreview.map((line, index) => (
+                      <p key={`${index}-${line.slice(0, 16)}`} className="text-sm leading-relaxed text-muted">
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+            </article>
+          ) : null}
         </section>
       ) : null}
     </div>

@@ -202,6 +202,20 @@ export function AtmosphereConfPage() {
                       ))}
                     </div>
                   ) : null}
+                  {(enrichment.byVodUri.get(featuredTalk.uri)?.transcriptPreview ?? []).length > 0 ? (
+                    <section className="mt-3 space-y-2">
+                      <h3 className="text-[11px] font-medium uppercase tracking-wide text-muted">Transcript highlights</h3>
+                      <div className="space-y-2">
+                        {(enrichment.byVodUri.get(featuredTalk.uri)?.transcriptPreview ?? [])
+                          .slice(0, 2)
+                          .map((line, index) => (
+                            <p key={`${index}-${line.slice(0, 16)}`} className="text-xs leading-relaxed text-muted">
+                              {line}
+                            </p>
+                          ))}
+                      </div>
+                    </section>
+                  ) : null}
                 </article>
               ) : null}
             </section>

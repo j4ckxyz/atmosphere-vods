@@ -1,10 +1,11 @@
 import { Search } from 'lucide-react'
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { ErrorPanel } from '@/components/error-panel'
 import { TalkCard } from '@/components/talk-card'
 import { TalkGridSkeleton } from '@/components/talk-grid-skeleton'
+import { hapticTap } from '@/lib/haptics'
 import { searchTalkUris } from '@/lib/semantic-search'
 import { toTagPath } from '@/lib/routes'
 import { getTalkTaxonomyTokens, scoreTalkForQuery } from '@/lib/taxonomy'
@@ -25,6 +26,8 @@ export function SearchPage() {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const { talks, loading, error, refresh } = useVideos()
   const trimmedQuery = query.trim()
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   const onQueryChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value
@@ -108,34 +111,48 @@ export function SearchPage() {
     }
   }, [trimmedQuery, talks.length])
 
-  const filteredTalks = !trimmedQuery
-    ? talks
-    : (() => {
-        const hasCurrentRemote = remoteQuery === trimmedQuery
+  const filteredTalks = useMemo(() => {
+    if (!trimmedQuery) {
+      return talks
+    }
 
-        if (hasCurrentRemote && remoteUris && remoteUris.length > 0) {
-          const talkByUri = new Map(talks.map((talk) => [talk.uri, talk]))
-          const orderedFromRemote = remoteUris
-            .map((uri) => talkByUri.get(uri))
-            .filter((talk): talk is NonNullable<typeof talk> => Boolean(talk))
+    const hasCurrentRemote = remoteQuery === trimmedQuery
 
-          if (orderedFromRemote.length > 0) {
-            return orderedFromRemote
-          }
-        }
+    if (hasCurrentRemote && remoteUris && remoteUris.length > 0) {
+      const talkByUri = new Map(talks.map((talk) => [talk.uri, talk]))
+      const orderedFromRemote = remoteUris
+        .map((uri) => talkByUri.get(uri))
+        .filter((talk): talk is NonNullable<typeof talk> => Boolean(talk))
 
-        return talks
-          .map((talk) => ({
-            talk,
-            score: scoreTalkForQuery(talk, trimmedQuery),
-          }))
-          .filter((entry) => entry.score > 0)
-          .sort((a, b) => b.score - a.score)
-          .map((entry) => entry.talk)
-      })()
+      if (orderedFromRemote.length > 0) {
+        return orderedFromRemote
+      }
+    }
+
+    return talks
+      .map((talk) => ({
+        talk,
+        score: scoreTalkForQuery(talk, trimmedQuery),
+      }))
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map((entry) => entry.talk)
+  }, [trimmedQuery, talks, remoteQuery, remoteUris])
 
   const selectedTalkIndex =
     filteredTalks.length > 0 ? Math.min(selectedIndex, filteredTalks.length - 1) : 0
+
+  const focusSelectedCard = (index: number) => {
+    const selectedTalk = filteredTalks[index]
+    if (!selectedTalk) {
+      return
+    }
+    const card = document.getElementById(`talk-card-${encodeURIComponent(selectedTalk.uri)}`)
+    if (card instanceof HTMLElement) {
+      card.focus({ preventScroll: true })
+      card.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion ? 'auto' : 'smooth' })
+    }
+  }
 
   useKeyboard((event) => {
     if (event.metaKey || event.ctrlKey || event.altKey) {
@@ -150,7 +167,12 @@ export function SearchPage() {
         return
       }
       event.preventDefault()
-      setSelectedIndex((value) => Math.min(filteredTalks.length - 1, value + 1))
+      hapticTap()
+      setSelectedIndex((value) => {
+        const next = Math.min(filteredTalks.length - 1, value + 1)
+        window.requestAnimationFrame(() => focusSelectedCard(next))
+        return next
+      })
       return
     }
 
@@ -159,7 +181,12 @@ export function SearchPage() {
         return
       }
       event.preventDefault()
-      setSelectedIndex((value) => Math.max(0, value - 1))
+      hapticTap()
+      setSelectedIndex((value) => {
+        const next = Math.max(0, value - 1)
+        window.requestAnimationFrame(() => focusSelectedCard(next))
+        return next
+      })
       return
     }
 
@@ -188,16 +215,19 @@ export function SearchPage() {
     }
   })
 
-  const counts = new Map<string, number>()
-  for (const talk of filteredTalks) {
-    for (const token of getTalkTaxonomyTokens(talk)) {
-      counts.set(token, (counts.get(token) ?? 0) + 1)
+  const popularTokens = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const talk of filteredTalks) {
+      for (const token of getTalkTaxonomyTokens(talk)) {
+        counts.set(token, (counts.get(token) ?? 0) + 1)
+      }
     }
-  }
-  const popularTokens = [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, 12)
-    .map(([token]) => token)
+
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 12)
+      .map(([token]) => token)
+  }, [filteredTalks])
 
   useEffect(() => {
     if (searchParams.get('focus') !== '1') {
@@ -303,6 +333,7 @@ export function SearchPage() {
                 featured={index === 0 && trimmedQuery.length > 0}
                 selected={selectedTalkIndex === index}
                 cardId={`talk-card-${encodeURIComponent(talk.uri)}`}
+                hapticPattern="select"
               />
             ))}
           </div>

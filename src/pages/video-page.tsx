@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type FormEvent,
 } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -17,6 +18,14 @@ import { ErrorPanel } from '@/components/error-panel'
 import { Button } from '@/components/ui/button'
 import { fetchTalkByUri, fetchVideoPlaylist, getArchiveBlobUrl } from '@/lib/api'
 import { formatDate, formatDuration, truncateDid } from '@/lib/format'
+import {
+  hapticBack,
+  hapticError,
+  hapticPlay,
+  hapticSeek,
+  hapticSuccess,
+  hapticTap,
+} from '@/lib/haptics'
 import { toTagPath, toVideoUriFromParams } from '@/lib/routes'
 import { getTalkTaxonomyTokens } from '@/lib/taxonomy'
 import { useKeyboard } from '@/lib/use-keyboard'
@@ -125,6 +134,7 @@ export function VideoPage() {
 
       setError('Video playback failed in this browser. Please retry.')
       setStatus('error')
+      hapticError()
     }
 
     video.addEventListener('error', onVideoError)
@@ -167,6 +177,7 @@ export function VideoPage() {
         setPlaylistUrl(playlistUrl)
         setError(null)
         setStatus('ready')
+        hapticSuccess()
       } catch (loadError) {
         if (cancelled) {
           return
@@ -176,6 +187,7 @@ export function VideoPage() {
         setError(message)
         setPlaylistUrl(null)
         setStatus('error')
+        hapticError()
       }
     }
 
@@ -242,6 +254,35 @@ export function VideoPage() {
     setPlaybackRate(nextRate)
   }, [])
 
+  const onSeekInput = useCallback((event: FormEvent<HTMLInputElement>) => {
+    const video = videoRef.current
+    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) {
+      return
+    }
+
+    const percent = Number(event.currentTarget.value)
+    if (!Number.isFinite(percent)) {
+      return
+    }
+
+    video.currentTime = (video.duration * percent) / 100
+    hapticSeek()
+  }, [])
+
+  const onTogglePlay = useCallback(() => {
+    const video = videoRef.current
+    if (!video) {
+      return
+    }
+
+    hapticPlay()
+    if (video.paused) {
+      void video.play()
+    } else {
+      video.pause()
+    }
+  }, [])
+
   useEffect(() => {
     let startY = 0
     let latestY = 0
@@ -289,6 +330,7 @@ export function VideoPage() {
 
     if (key === ' ') {
       event.preventDefault()
+      hapticPlay()
       if (video.paused) {
         void video.play()
       } else {
@@ -299,6 +341,7 @@ export function VideoPage() {
 
     if (lower === 'k') {
       event.preventDefault()
+      hapticPlay()
       if (video.paused) {
         void video.play()
       } else {
@@ -310,6 +353,7 @@ export function VideoPage() {
     if (lower === 'j') {
       event.preventDefault()
       video.currentTime = Math.max(0, video.currentTime - 10)
+      hapticSeek()
       return
     }
 
@@ -317,11 +361,13 @@ export function VideoPage() {
       event.preventDefault()
       const duration = Number.isFinite(video.duration) ? video.duration : video.currentTime + 10
       video.currentTime = Math.min(duration, video.currentTime + 10)
+      hapticSeek()
       return
     }
 
     if (lower === 'f') {
       event.preventDefault()
+      hapticTap()
       const container = playerContainerRef.current
       if (!container) {
         return
@@ -338,6 +384,7 @@ export function VideoPage() {
     if (lower === 'm') {
       event.preventDefault()
       video.muted = !video.muted
+      hapticTap()
       return
     }
 
@@ -346,6 +393,7 @@ export function VideoPage() {
       const pct = Number(key) / 10
       if (Number.isFinite(video.duration) && video.duration > 0) {
         video.currentTime = video.duration * pct
+        hapticSeek()
       }
       return
     }
@@ -355,6 +403,7 @@ export function VideoPage() {
       const nextRate = Math.max(0.25, video.playbackRate - 0.25)
       video.playbackRate = nextRate
       setPlaybackRate(nextRate)
+      hapticTap()
       return
     }
 
@@ -363,11 +412,13 @@ export function VideoPage() {
       const nextRate = Math.min(4, video.playbackRate + 0.25)
       video.playbackRate = nextRate
       setPlaybackRate(nextRate)
+      hapticTap()
       return
     }
 
     if (key === 'Escape') {
       event.preventDefault()
+      hapticBack()
       navigate('/')
     }
   })
@@ -403,7 +454,12 @@ export function VideoPage() {
   return (
     <div className="space-y-7 md:space-y-10">
       <Button asChild variant="ghost">
-        <Link to="/">
+        <Link
+          to="/"
+          onClick={() => {
+            hapticBack()
+          }}
+        >
           <ArrowLeft className="h-4 w-4" />
           Back to Browse
         </Link>
@@ -444,9 +500,26 @@ export function VideoPage() {
         ) : null}
 
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
+          <Button variant="secondary" onClick={onTogglePlay}>
+            Play / Pause
+          </Button>
           <p>
             {playbackElapsed} / {playbackTotal}
           </p>
+
+          <label className="flex min-h-11 min-w-[12rem] flex-1 items-center gap-2">
+            <span className="sr-only">Seek timeline</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={duration > 0 ? Math.round((currentTime / duration) * 100) : 0}
+              onChange={onSeekInput}
+              onInput={onSeekInput}
+              className="h-11 w-full accent-[oklch(var(--accent))]"
+            />
+          </label>
 
           <label className="flex min-h-11 items-center gap-2">
             <span>Speed</span>

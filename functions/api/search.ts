@@ -46,6 +46,7 @@ let cachedLiveCatalog: {
 } | null = null
 const INDEX_TTL_MS = 5 * 60 * 1000
 const LIVE_CATALOG_TTL_MS = 2 * 60 * 1000
+const EMBEDDING_DIMENSIONS = 4096
 
 function normalizeVector(vector: number[]): number {
   let sum = 0
@@ -267,7 +268,7 @@ async function loadEmbeddingIndex(context: PagesFunctionContextLike): Promise<{ 
       })
 
       if (remoteResponse.ok) {
-        index = (await remoteResponse.json()) as EmbeddingIndex
+        index = validateEmbeddingIndex((await remoteResponse.json()) as EmbeddingIndex)
       }
     } catch {
       index = null
@@ -293,7 +294,7 @@ async function loadEmbeddingIndex(context: PagesFunctionContextLike): Promise<{ 
       throw new Error(`Embeddings asset unavailable (${response.status})`)
     }
 
-    index = (await response.json()) as EmbeddingIndex
+    index = validateEmbeddingIndex((await response.json()) as EmbeddingIndex)
   }
 
   const norms = (index.entries ?? []).map((entry) => normalizeVector(entry.embedding ?? []))
@@ -381,6 +382,31 @@ function mapNormsByUri(entries: EmbeddingEntry[], norms: number[]): Map<string, 
     normByUri.set(entries[i].uri, norms[i] ?? 0)
   }
   return normByUri
+}
+
+function validateEmbeddingIndex(index: EmbeddingIndex): EmbeddingIndex {
+  if (!Array.isArray(index.entries)) {
+    throw new Error('Embedding index entries missing')
+  }
+
+  const validEntries = index.entries.filter((entry) => {
+    if (!entry?.uri || !Array.isArray(entry.embedding)) {
+      return false
+    }
+    if (entry.embedding.length !== EMBEDDING_DIMENSIONS) {
+      return false
+    }
+    return entry.embedding.every((value) => Number.isFinite(value))
+  })
+
+  if (validEntries.length === 0) {
+    throw new Error('No valid embeddings in index')
+  }
+
+  return {
+    ...index,
+    entries: validEntries,
+  }
 }
 
 function jsonResponse(body: unknown, init?: ResponseInit): Response {

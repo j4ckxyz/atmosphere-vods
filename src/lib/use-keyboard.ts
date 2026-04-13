@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 interface UseKeyboardOptions {
   enabled?: boolean
@@ -22,8 +22,14 @@ export function useKeyboard(
   onKeyDown: (event: KeyboardEvent) => void,
   options?: UseKeyboardOptions,
 ) {
+  const callbackRef = useRef(onKeyDown)
+
   const enabled = options?.enabled ?? true
   const allowInInputs = options?.allowInInputs ?? false
+
+  useEffect(() => {
+    callbackRef.current = onKeyDown
+  }, [onKeyDown])
 
   useEffect(() => {
     if (!enabled) {
@@ -35,12 +41,12 @@ export function useKeyboard(
         return
       }
 
-      onKeyDown(event)
+      callbackRef.current(event)
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [onKeyDown, enabled, allowInInputs])
+  }, [enabled, allowInInputs])
 }

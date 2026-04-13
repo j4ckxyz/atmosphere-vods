@@ -7,12 +7,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: 'oklch(0 0 0 / <alpha-value>)',
-        surface: 'oklch(0.12 0 0 / <alpha-value>)',
-        line: 'oklch(0.34 0 0 / <alpha-value>)',
-        text: 'oklch(0.95 0 0 / <alpha-value>)',
-        muted: 'oklch(0.72 0 0 / <alpha-value>)',
-        accent: 'oklch(0.75 0.11 190 / <alpha-value>)',
+        bg: 'oklch(var(--bg) / <alpha-value>)',
+        surface: 'oklch(var(--surface) / <alpha-value>)',
+        line: 'oklch(var(--line) / <alpha-value>)',
+        text: 'oklch(var(--text) / <alpha-value>)',
+        muted: 'oklch(var(--muted) / <alpha-value>)',
+        accent: 'oklch(var(--accent) / <alpha-value>)',
         info: 'oklch(0.72 0 0 / <alpha-value>)',
         success: 'oklch(0.72 0 0 / <alpha-value>)',
         warning: 'oklch(0.72 0 0 / <alpha-value>)',

@@ -2,7 +2,7 @@ import { CalendarDays, Clock3, UserRound } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { cardTapHaptic } from '@/lib/haptics'
+import { cardTapHaptic, hapticSelect } from '@/lib/haptics'
 import { formatDate, formatDuration, truncateDid } from '@/lib/format'
 import { toVideoPath } from '@/lib/routes'
 import { getCachedThumbnail, getOrCreateThumbnail } from '@/lib/thumbnails'
@@ -14,9 +14,16 @@ interface TalkCardProps {
   featured?: boolean
   selected?: boolean
   cardId?: string
+  hapticPattern?: 'tap' | 'select'
 }
 
-export function TalkCard({ talk, featured = false, selected = false, cardId }: TalkCardProps) {
+export function TalkCard({
+  talk,
+  featured = false,
+  selected = false,
+  cardId,
+  hapticPattern = 'tap',
+}: TalkCardProps) {
   const cardRef = useRef<HTMLAnchorElement | null>(null)
   const [thumbnail, setThumbnail] = useState<string | null>(() => getCachedThumbnail(talk.uri))
   const [hasEnteredView, setHasEnteredView] = useState<boolean>(false)
@@ -73,7 +80,13 @@ export function TalkCard({ talk, featured = false, selected = false, cardId }: T
       id={cardId}
       ref={cardRef}
       to={toVideoPath(talk.uri)}
-      onClick={cardTapHaptic}
+      onClick={() => {
+        if (hapticPattern === 'select') {
+          hapticSelect()
+          return
+        }
+        cardTapHaptic()
+      }}
       className={cn(
         'group relative block w-full overflow-hidden rounded-xl border transition-[background-color,border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text/35',
         featured
@@ -99,8 +112,8 @@ export function TalkCard({ talk, featured = false, selected = false, cardId }: T
             style={{
               backgroundImage:
                 featured
-                  ? 'linear-gradient(165deg, oklch(0 0 0 / 0.8), oklch(0.12 0 0 / 0.58))'
-                  : 'linear-gradient(165deg, oklch(0 0 0 / 0.9), oklch(0.12 0 0 / 0.72))',
+                  ? 'linear-gradient(165deg, oklch(var(--bg) / 0.8), oklch(var(--surface) / 0.58))'
+                  : 'linear-gradient(165deg, oklch(var(--bg) / 0.9), oklch(var(--surface) / 0.72))',
             }}
           />
         </div>

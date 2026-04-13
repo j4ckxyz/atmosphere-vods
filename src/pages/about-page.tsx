@@ -1,4 +1,34 @@
+import { useState } from 'react'
+
+import {
+  getStoredThemePreference,
+  setThemePreference,
+  type ThemePreference,
+} from '@/lib/theme'
+import {
+  hapticTap,
+  isHapticsDisabledByUser,
+  isTouchDevice,
+  setHapticsDisabled,
+} from '@/lib/haptics'
+
 export function AboutPage() {
+  const [themePreference, setLocalThemePreference] = useState<ThemePreference>(() => getStoredThemePreference())
+  const [showHapticsToggle] = useState<boolean>(() => isTouchDevice())
+  const [hapticsDisabled, setLocalHapticsDisabled] = useState<boolean>(() => isHapticsDisabledByUser())
+
+  const onThemeChange = (value: ThemePreference) => {
+    setLocalThemePreference(value)
+    setThemePreference(value)
+    hapticTap()
+  }
+
+  const onHapticsToggle = () => {
+    const nextDisabled = !hapticsDisabled
+    setLocalHapticsDisabled(nextDisabled)
+    setHapticsDisabled(nextDisabled)
+  }
+
   return (
     <div className="space-y-4">
       <section className="rounded-lg border border-line/45 bg-surface/80 p-5 md:p-6">
@@ -30,6 +60,56 @@ export function AboutPage() {
           <li>Video: <code>&lt;</code>/<code>&gt;</code> adjust speed by 0.25x, <code>Esc</code> back to browse.</li>
         </ul>
       </section>
+
+      <section className="rounded-lg border border-line/45 bg-surface/80 p-5 md:p-6">
+        <h2 className="text-base font-semibold text-text">Theme</h2>
+        <p className="mt-2 text-sm text-muted">Preference is saved in this browser.</p>
+        <fieldset className="mt-3" aria-label="Theme preference">
+          <legend className="sr-only">Theme preference</legend>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => onThemeChange('system')}
+              aria-pressed={themePreference === 'system'}
+              className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text aria-pressed:border-accent/60 aria-pressed:text-text"
+            >
+              System
+            </button>
+            <button
+              type="button"
+              onClick={() => onThemeChange('light')}
+              aria-pressed={themePreference === 'light'}
+              className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text aria-pressed:border-accent/60 aria-pressed:text-text"
+            >
+              Light
+            </button>
+            <button
+              type="button"
+              onClick={() => onThemeChange('dark')}
+              aria-pressed={themePreference === 'dark'}
+              className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text aria-pressed:border-accent/60 aria-pressed:text-text"
+            >
+              Dark
+            </button>
+          </div>
+        </fieldset>
+      </section>
+
+      {showHapticsToggle ? (
+        <section className="rounded-lg border border-line/45 bg-surface/80 p-5 md:p-6">
+          <h2 className="text-base font-semibold text-text">Haptic feedback</h2>
+          <p className="mt-2 text-sm text-muted">Subtle vibrations on interactions (Android only)</p>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={!hapticsDisabled}
+            onClick={onHapticsToggle}
+            className="mt-3 inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text"
+          >
+            {!hapticsDisabled ? 'Enabled' : 'Disabled'}
+          </button>
+        </section>
+      ) : null}
     </div>
   )
 }

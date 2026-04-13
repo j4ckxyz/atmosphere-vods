@@ -2,6 +2,7 @@ import { Film, Info, Search, Sparkles } from 'lucide-react'
 import { NavLink, type NavLinkProps } from 'react-router-dom'
 import { type PropsWithChildren, useEffect, useRef, useState } from 'react'
 
+import { hapticTap } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -32,6 +33,13 @@ function NavItem({ label, icon: Icon, ...props }: NavLinkProps & { label: string
   return (
     <NavLink
       {...props}
+      onClick={(event) => {
+        props.onClick?.(event)
+        if (event.defaultPrevented) {
+          return
+        }
+        hapticTap()
+      }}
       className={({ isActive }) =>
         cn(
           'flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-[background-color,color,border-color] md:justify-start md:px-3.5',

@@ -4,7 +4,10 @@ import { BrowserRouter } from 'react-router-dom'
 import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import App from './App.tsx'
+import { initializeTheme } from './lib/theme.ts'
 import { VideosProvider } from './state/videos-context.tsx'
+
+initializeTheme()
 
 registerSW({
   immediate: true,

@@ -16,10 +16,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
         manifest: {
-          name: 'Atmosphere VODs',
-          short_name: 'Atmosphere VODs',
+          name: 'Streamplace VOD Client',
+          short_name: 'Streamplace VOD',
           description:
-            'A minimalist glassy video browser for ATmosphereConf 2026 talks.',
+            'A minimalist glassy video browser for Streamplace and AtmosphereConf VODs.',
           theme_color: '#000000',
           background_color: '#000000',
           display: 'standalone',
@@ -45,6 +45,19 @@ export default defineConfig({
               expiration: {
                 maxEntries: 16,
                 maxAgeSeconds: 60 * 60 * 24,
+              },
+            },
+          },
+          {
+            urlPattern:
+              /^https:\/\/bsky\.network\/xrpc\/com\.atproto\.sync\.listReposByCollection.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'relay-collection-discovery',
+              networkTimeoutSeconds: 8,
+              expiration: {
+                maxEntries: 16,
+                maxAgeSeconds: 60 * 15,
               },
             },
           },
@@ -84,6 +97,18 @@ export default defineConfig({
               expiration: {
                 maxEntries: 48,
                 maxAgeSeconds: 60 * 60,
+              },
+            },
+          },
+          {
+            urlPattern: /^\/api\/search.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'semantic-search',
+              networkTimeoutSeconds: 5,
+              expiration: {
+                maxEntries: 40,
+                maxAgeSeconds: 60 * 5,
               },
             },
           },

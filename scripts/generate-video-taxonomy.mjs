@@ -165,7 +165,7 @@ async function callOpenRouter(pathname, body) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://atmovods.j4ck.xyz',
+      'HTTP-Referer': 'https://vods.j4ck.xyz',
       'X-OpenRouter-Title': 'Atmosphere VODs taxonomy generation',
     },
     body: JSON.stringify(body),

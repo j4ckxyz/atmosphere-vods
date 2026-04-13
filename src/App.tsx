@@ -4,6 +4,9 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/layout/app-shell'
 
 const BrowsePage = lazy(() => import('@/pages/browse-page').then((module) => ({ default: module.BrowsePage })))
+const AtmosphereConfPage = lazy(() =>
+  import('@/pages/atmosphereconf-page').then((module) => ({ default: module.AtmosphereConfPage })),
+)
 const SearchPage = lazy(() => import('@/pages/search-page').then((module) => ({ default: module.SearchPage })))
 const AboutPage = lazy(() => import('@/pages/about-page').then((module) => ({ default: module.AboutPage })))
 const VideoPage = lazy(() => import('@/pages/video-page').then((module) => ({ default: module.VideoPage })))
@@ -23,9 +26,10 @@ function App() {
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/" element={<BrowsePage />} />
+          <Route path="/atmosphereconf-2026" element={<AtmosphereConfPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/video/:encodedUri" element={<VideoPage />} />
+          <Route path="/video/:didParam/:rkeyParam" element={<VideoPage />} />
           <Route path="/tag/:tagParam" element={<TagPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

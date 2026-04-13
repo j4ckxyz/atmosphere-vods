@@ -1,7 +1,9 @@
 import {
+  ATMOSPHERE_REPO_DID,
   BSKY_PUBLIC_API,
+  BSKY_RELAY_SYNC_API,
   PLC_DIRECTORY_URL,
-  REPO_DID,
+  STREAMPLACE_VIDEO_COLLECTION,
   VOD_PLAYLIST_ENDPOINT,
 } from './constants'
 import { truncateDid } from './format'
@@ -9,7 +11,9 @@ import taxonomyData from './video-taxonomy.json'
 import type {
   ActorProfile,
   AppTalk,
+  GetRecordResponse,
   ListRecordsResponse,
+  ListReposByCollectionResponse,
   PlcDidDocument,
 } from './types'
 
@@ -22,9 +26,12 @@ interface TaxonomyEntry {
 }
 
 const profileCache = new Map<string, Promise<ActorProfile | null>>()
-let pdsUrlPromise: Promise<string> | null = null
+const pdsUrlCache = new Map<string, Promise<string>>()
 const REQUEST_TIMEOUT_MS = 8_000
 const PROFILE_CONCURRENCY = 6
+const REPO_FETCH_CONCURRENCY = 4
+const DISCOVERY_LIMIT = 1_000
+const RECORDS_PAGE_LIMIT = 100
 const taxonomyByUri = new Map(
   (taxonomyData.entries as TaxonomyEntry[]).map((entry) => [entry.uri, entry]),
 )
@@ -90,14 +97,45 @@ async function mapWithConcurrency<T, R>(
   return results
 }
 
-export function resolvePdsUrl(): Promise<string> {
-  if (pdsUrlPromise) {
-    return pdsUrlPromise
+async function fetchReposByCollection(collection: string): Promise<string[]> {
+  const dids = new Set<string>()
+  let cursor: string | undefined
+
+  do {
+    const query = new URLSearchParams({
+      collection,
+      limit: String(DISCOVERY_LIMIT),
+    })
+
+    if (cursor) {
+      query.set('cursor', cursor)
+    }
+
+    const data = await fetchJson<ListReposByCollectionResponse>(
+      `${BSKY_RELAY_SYNC_API}/xrpc/com.atproto.sync.listReposByCollection?${query.toString()}`,
+    )
+
+    for (const entry of data.repos ?? []) {
+      if (entry.did) {
+        dids.add(entry.did)
+      }
+    }
+
+    cursor = data.cursor
+  } while (cursor)
+
+  return [...dids].sort((a, b) => a.localeCompare(b))
+}
+
+export function resolvePdsUrl(did: string): Promise<string> {
+  const cached = pdsUrlCache.get(did)
+  if (cached) {
+    return cached
   }
 
-  pdsUrlPromise = (async () => {
+  const pending = (async () => {
     try {
-      const didDoc = await fetchJson<PlcDidDocument>(`${PLC_DIRECTORY_URL}/${REPO_DID}`)
+      const didDoc = await fetchJson<PlcDidDocument>(`${PLC_DIRECTORY_URL}/${did}`)
       const pdsService = didDoc.service?.find((entry) => entry.id === '#atproto_pds')
 
       if (!pdsService?.serviceEndpoint) {
@@ -106,12 +144,43 @@ export function resolvePdsUrl(): Promise<string> {
 
       return pdsService.serviceEndpoint.replace(/\/$/, '')
     } catch (error) {
-      pdsUrlPromise = null
+      pdsUrlCache.delete(did)
       throw error
     }
   })()
 
-  return pdsUrlPromise
+  pdsUrlCache.set(did, pending)
+  return pending
+}
+
+async function fetchRepoCollectionRecords(
+  repoDid: string,
+  collection: string,
+): Promise<ListRecordsResponse['records']> {
+  const pdsUrl = await resolvePdsUrl(repoDid)
+  const records: ListRecordsResponse['records'] = []
+  let cursor: string | undefined
+
+  do {
+    const query = new URLSearchParams({
+      repo: repoDid,
+      collection,
+      limit: String(RECORDS_PAGE_LIMIT),
+    })
+
+    if (cursor) {
+      query.set('cursor', cursor)
+    }
+
+    const data = await fetchJson<ListRecordsResponse>(
+      `${pdsUrl}/xrpc/com.atproto.repo.listRecords?${query.toString()}`,
+    )
+
+    records.push(...(data.records ?? []))
+    cursor = data.cursor
+  } while (cursor)
+
+  return records
 }
 
 async function fetchProfile(did: string): Promise<ActorProfile | null> {
@@ -138,18 +207,35 @@ function getCachedProfile(did: string): Promise<ActorProfile | null> {
 }
 
 export async function fetchTalks(): Promise<AppTalk[]> {
-  const pdsUrl = await resolvePdsUrl()
-  const query = new URLSearchParams({
-    repo: REPO_DID,
-    collection: 'place.stream.video',
-    limit: '100',
-  })
+  const discoveredRepoDids = await fetchReposByCollection(STREAMPLACE_VIDEO_COLLECTION)
+  if (discoveredRepoDids.length === 0) {
+    return []
+  }
 
-  const data = await fetchJson<ListRecordsResponse>(
-    `${pdsUrl}/xrpc/com.atproto.repo.listRecords?${query.toString()}`,
+  let successfulRepoCount = 0
+  const repoRecords = await mapWithConcurrency(
+    discoveredRepoDids,
+    REPO_FETCH_CONCURRENCY,
+    async (repoDid) => {
+      try {
+        const records = await fetchRepoCollectionRecords(repoDid, STREAMPLACE_VIDEO_COLLECTION)
+        successfulRepoCount += 1
+        return records.map((record) => ({
+          ...record,
+          sourceRepoDid: repoDid,
+        }))
+      } catch {
+        return []
+      }
+    },
   )
 
-  const sorted = [...data.records].sort(
+  if (successfulRepoCount === 0) {
+    throw new Error('Unable to load video records from discovered repos')
+  }
+
+  const merged = repoRecords.flat()
+  const sorted = [...merged].sort(
     (a, b) => new Date(b.value.createdAt).getTime() - new Date(a.value.createdAt).getTime(),
   )
 
@@ -169,6 +255,7 @@ export async function fetchTalks(): Promise<AppTalk[]> {
     return {
       uri: record.uri,
       cid: record.cid,
+      sourceRepoDid: record.sourceRepoDid,
       title: record.value.title,
       description: record.value.description,
       creatorDid: record.value.creator,
@@ -184,6 +271,64 @@ export async function fetchTalks(): Promise<AppTalk[]> {
       taxonomyKeywords: taxonomy?.keywords ?? [],
     }
   })
+}
+
+export function isAtmosphereTalk(talk: AppTalk): boolean {
+  return talk.sourceRepoDid === ATMOSPHERE_REPO_DID
+}
+
+function parseVideoUri(uri: string): { did: string } | null {
+  const match = uri.match(/^at:\/\/(did:[^/]+)\/place\.stream\.video\/[^/]+$/)
+  if (!match) {
+    return null
+  }
+
+  return { did: match[1] }
+}
+
+async function toAppTalkFromRecord(record: GetRecordResponse): Promise<AppTalk> {
+  const uriInfo = parseVideoUri(record.uri)
+  if (!uriInfo) {
+    throw new Error('Invalid video URI')
+  }
+
+  const taxonomy = taxonomyByUri.get(record.uri)
+  const profile = await getCachedProfile(record.value.creator)
+  const creatorName = profile?.displayName?.trim() || profile?.handle || truncateDid(record.value.creator)
+
+  return {
+    uri: record.uri,
+    cid: record.cid,
+    sourceRepoDid: uriInfo.did,
+    title: record.value.title,
+    description: record.value.description,
+    creatorDid: record.value.creator,
+    creatorName,
+    creatorHandle: profile?.handle,
+    durationNs: record.value.duration,
+    createdAt: record.value.createdAt,
+    sourceRef: record.value.source?.ref,
+    sourceMimeType: record.value.source?.mimeType,
+    taxonomyGroup: taxonomy?.group,
+    taxonomyTags: taxonomy?.tags ?? [],
+    taxonomyTopics: taxonomy?.topics ?? [],
+    taxonomyKeywords: taxonomy?.keywords ?? [],
+  }
+}
+
+export async function fetchTalkByUri(uri: string): Promise<AppTalk> {
+  const uriInfo = parseVideoUri(uri)
+  if (!uriInfo) {
+    throw new Error('Invalid video URI')
+  }
+
+  const pdsUrl = await resolvePdsUrl(uriInfo.did)
+  const query = new URLSearchParams({ uri })
+  const record = await fetchJson<GetRecordResponse>(
+    `${pdsUrl}/xrpc/com.atproto.repo.getRecord?${query.toString()}`,
+  )
+
+  return toAppTalkFromRecord(record)
 }
 
 export async function fetchVideoPlaylist(uri: string): Promise<string> {
@@ -214,6 +359,6 @@ export async function fetchVideoPlaylist(uri: string): Promise<string> {
   return playlistUrl
 }
 
-export function getArchiveBlobUrl(sourceRef: string): string {
-  return `https://vod-beta.stream.place/xrpc/com.atproto.sync.getBlob?did=${encodeURIComponent(REPO_DID)}&cid=${encodeURIComponent(sourceRef)}`
+export function getArchiveBlobUrl(sourceRepoDid: string, sourceRef: string): string {
+  return `https://vod-beta.stream.place/xrpc/com.atproto.sync.getBlob?did=${encodeURIComponent(sourceRepoDid)}&cid=${encodeURIComponent(sourceRef)}`
 }

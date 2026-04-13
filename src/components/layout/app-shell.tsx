@@ -1,7 +1,8 @@
-import { Film, Info, Search } from 'lucide-react'
-import { NavLink, type NavLinkProps } from 'react-router-dom'
+import { Film, Info, Search, Sparkles } from 'lucide-react'
+import { NavLink, type NavLinkProps, useLocation } from 'react-router-dom'
 import { type PropsWithChildren, useEffect, useRef, useState } from 'react'
 
+import { ShortcutsHelp, type ShortcutItem } from '@/components/shortcuts-help'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -10,6 +11,11 @@ const navItems = [
     icon: Film,
     to: '/',
     end: true,
+  },
+  {
+    label: 'Atmosphere',
+    icon: Sparkles,
+    to: '/atmosphereconf-2026',
   },
   {
     label: 'Search',
@@ -43,9 +49,45 @@ function NavItem({ label, icon: Icon, ...props }: NavLinkProps & { label: string
   )
 }
 
+function getShortcuts(pathname: string): { title: string; items: ShortcutItem[] } {
+  if (pathname.startsWith('/video/')) {
+    return {
+      title: 'Player shortcuts',
+      items: [
+        { key: 'Space / K', description: 'Play or pause' },
+        { key: 'J / L', description: 'Seek back/forward 10s' },
+        { key: 'F', description: 'Toggle fullscreen' },
+        { key: 'M', description: 'Toggle mute' },
+        { key: '0-9', description: 'Seek to 0-90%' },
+        { key: '< / >', description: 'Change speed by 0.25x' },
+        { key: 'Esc', description: 'Back to browse' },
+      ],
+    }
+  }
+
+  if (pathname === '/' || pathname === '/search') {
+    return {
+      title: 'Browse/search shortcuts',
+      items: [
+        { key: 'J', description: 'Next video card' },
+        { key: 'K', description: 'Previous video card' },
+        { key: '/', description: 'Focus search box' },
+        { key: 'Enter', description: 'Open selected card' },
+      ],
+    }
+  }
+
+  return {
+    title: 'Page shortcuts',
+    items: [{ key: 'None', description: 'No custom shortcuts on this page' }],
+  }
+}
+
 export function AppShell({ children }: PropsWithChildren) {
+  const location = useLocation()
   const [isHeaderHidden, setIsHeaderHidden] = useState(false)
   const lastScrollYRef = useRef(0)
+  const shortcuts = getShortcuts(location.pathname)
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -94,17 +136,20 @@ export function AppShell({ children }: PropsWithChildren) {
         onFocusCapture={() => setIsHeaderHidden(false)}
       >
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-3 py-2.5 sm:px-4 md:px-6 md:py-3">
-          <p className="text-base font-bold tracking-[0.01em] text-text md:text-lg">Atmosphere VODs</p>
+          <p className="text-base font-bold tracking-[0.01em] text-text md:text-lg">Streamplace VOD Client</p>
 
           <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:text-text">
             Skip to content
           </a>
 
-          <nav className="hidden items-center gap-1.5 md:flex lg:gap-2" aria-label="Primary">
-            {navItems.map((item) => (
-              <NavItem key={item.to} label={item.label} to={item.to} end={item.end} icon={item.icon} />
-            ))}
-          </nav>
+          <div className="flex items-center gap-2">
+            <nav className="hidden items-center gap-1.5 md:flex lg:gap-2" aria-label="Primary">
+              {navItems.map((item) => (
+                <NavItem key={item.to} label={item.label} to={item.to} end={item.end} icon={item.icon} />
+              ))}
+            </nav>
+            <ShortcutsHelp title={shortcuts.title} items={shortcuts.items} />
+          </div>
         </div>
       </header>
 
@@ -135,8 +180,29 @@ export function AppShell({ children }: PropsWithChildren) {
             >
               GitHub
             </a>
+            <span className="flex flex-col leading-tight">
+              <a
+                href="https://vod.j4ck.xyz"
+                target="_blank"
+                rel="noreferrer"
+                className="underline-offset-4 hover:text-text hover:underline"
+              >
+                iStream →
+              </a>
+              <span className="text-[11px] text-muted/90">Classic iCarly episodes</span>
+            </span>
           </p>
-          <p>Built for the Streamplace VOD JAM</p>
+          <p>
+            Built for Streamplace VOD beta ·{' '}
+            <a
+              href="https://vods.j4ck.xyz"
+              target="_blank"
+              rel="noreferrer"
+              className="underline-offset-4 hover:text-text hover:underline"
+            >
+              vods.j4ck.xyz
+            </a>
+          </p>
         </div>
       </footer>
 

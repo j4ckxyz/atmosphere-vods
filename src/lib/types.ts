@@ -27,6 +27,19 @@ export interface ListRecordsResponse {
   cursor?: string
 }
 
+export interface GetRecordResponse {
+  uri: string
+  cid: string
+  value: StreamVideoRecord['value']
+}
+
+export interface ListReposByCollectionResponse {
+  repos: Array<{
+    did: string
+  }>
+  cursor?: string
+}
+
 export interface PlcDidDocument {
   service?: Array<{
     id?: string
@@ -45,6 +58,7 @@ export interface ActorProfile {
 export interface AppTalk {
   uri: string
   cid: string
+  sourceRepoDid: string
   title: string
   description?: string
   creatorDid: string

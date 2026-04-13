@@ -1,34 +1,33 @@
-function toBase64Url(value: string): string {
-  const bytes = new TextEncoder().encode(value)
-  let binary = ''
-
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte)
-  }
-
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
-}
-
-function fromBase64Url(value: string): string {
-  const padded = value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (value.length % 4)) % 4)
-  const binary = atob(padded)
-  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
-  return new TextDecoder().decode(bytes)
-}
+const VIDEO_URI_PATTERN = /^at:\/\/(did:[^/]+)\/place\.stream\.video\/([^/]+)$/
 
 export function toVideoPath(uri: string): string {
-  return `/video/${toBase64Url(uri)}`
+  const parsed = parseVideoUri(uri)
+  if (!parsed) {
+    return '/'
+  }
+  return `/video/${parsed.did}/${parsed.rkey}`
 }
 
-export function fromVideoParam(param: string): string | undefined {
-  try {
-    const maybeLegacy = decodeURIComponent(param)
-    if (maybeLegacy.startsWith('at://')) {
-      return maybeLegacy
-    }
+function parseVideoUri(uri: string): { did: string; rkey: string } | null {
+  const match = uri.match(VIDEO_URI_PATTERN)
+  if (!match) {
+    return null
+  }
 
-    const decoded = fromBase64Url(param)
-    return decoded.startsWith('at://') ? decoded : undefined
+  return {
+    did: match[1],
+    rkey: match[2],
+  }
+}
+
+export function toVideoUriFromParams(didParam: string, rkeyParam: string): string | undefined {
+  try {
+    const did = decodeURIComponent(didParam).trim()
+    const rkey = decodeURIComponent(rkeyParam).trim()
+    if (!did.startsWith('did:') || !rkey) {
+      return undefined
+    }
+    return `at://${did}/place.stream.video/${rkey}`
   } catch {
     return undefined
   }

@@ -15,10 +15,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { ErrorPanel } from '@/components/error-panel'
 import { Button } from '@/components/ui/button'
-import { fetchVideoPlaylist, getArchiveBlobUrl } from '@/lib/api'
+import { fetchTalkByUri, fetchVideoPlaylist, getArchiveBlobUrl } from '@/lib/api'
 import { formatDate, formatDuration, truncateDid } from '@/lib/format'
-import { fromVideoParam, toTagPath } from '@/lib/routes'
+import { toTagPath, toVideoUriFromParams } from '@/lib/routes'
 import { getTalkTaxonomyTokens } from '@/lib/taxonomy'
+import { useKeyboard } from '@/lib/use-keyboard'
+import type { AppTalk } from '@/lib/types'
 import { useVideos } from '@/state/videos-context'
 
 type PlaybackStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -31,7 +33,7 @@ interface HlsLike {
 
 export function VideoPage() {
   const navigate = useNavigate()
-  const { encodedUri } = useParams<{ encodedUri: string }>()
+  const { didParam, rkeyParam } = useParams<{ didParam: string; rkeyParam: string }>()
   const { talks, loading: talksLoading } = useVideos()
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -46,17 +48,61 @@ export function VideoPage() {
   const [reloadToken, setReloadToken] = useState(0)
   const [playbackRate, setPlaybackRate] = useState<number>(1)
   const [playlistUrl, setPlaylistUrl] = useState<string | null>(null)
+  const [resolvedTalk, setResolvedTalk] = useState<AppTalk | null>(null)
+  const [metadataLoading, setMetadataLoading] = useState<boolean>(false)
 
   const resolvedUri = useMemo(
-    () => (encodedUri ? fromVideoParam(encodedUri) : undefined),
-    [encodedUri],
+    () => (didParam && rkeyParam ? toVideoUriFromParams(didParam, rkeyParam) : undefined),
+    [didParam, rkeyParam],
   )
 
-  const talk = useMemo(() => talks.find((item) => item.uri === resolvedUri), [talks, resolvedUri])
+  const talk = useMemo(
+    () => talks.find((item) => item.uri === resolvedUri) ?? resolvedTalk,
+    [talks, resolvedUri, resolvedTalk],
+  )
   const talkTokens = useMemo(() => (talk ? getTalkTaxonomyTokens(talk).slice(0, 10) : []), [talk])
 
   const playbackElapsed = formatDuration(currentTime * 1_000_000_000)
   const playbackTotal = formatDuration(duration * 1_000_000_000 || talk?.durationNs || 0)
+
+  useEffect(() => {
+    if (!resolvedUri) {
+      return
+    }
+
+    const alreadyInCatalog = talks.some((item) => item.uri === resolvedUri)
+    if (alreadyInCatalog) {
+      setResolvedTalk(null)
+      setMetadataLoading(false)
+      return
+    }
+
+    let active = true
+    setMetadataLoading(true)
+
+    fetchTalkByUri(resolvedUri)
+      .then((record) => {
+        if (!active) {
+          return
+        }
+        setResolvedTalk(record)
+      })
+      .catch(() => {
+        if (!active) {
+          return
+        }
+        setResolvedTalk(null)
+      })
+      .finally(() => {
+        if (active) {
+          setMetadataLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [resolvedUri, talks])
 
   useEffect(() => {
     if (!resolvedUri || !videoRef.current) {
@@ -232,6 +278,100 @@ export function VideoPage() {
     }
   }, [navigate])
 
+  useKeyboard((event) => {
+    const video = videoRef.current
+    if (!video || event.metaKey || event.ctrlKey || event.altKey) {
+      return
+    }
+
+    const key = event.key
+    const lower = key.toLowerCase()
+
+    if (key === ' ') {
+      event.preventDefault()
+      if (video.paused) {
+        void video.play()
+      } else {
+        video.pause()
+      }
+      return
+    }
+
+    if (lower === 'k') {
+      event.preventDefault()
+      if (video.paused) {
+        void video.play()
+      } else {
+        video.pause()
+      }
+      return
+    }
+
+    if (lower === 'j') {
+      event.preventDefault()
+      video.currentTime = Math.max(0, video.currentTime - 10)
+      return
+    }
+
+    if (lower === 'l') {
+      event.preventDefault()
+      const duration = Number.isFinite(video.duration) ? video.duration : video.currentTime + 10
+      video.currentTime = Math.min(duration, video.currentTime + 10)
+      return
+    }
+
+    if (lower === 'f') {
+      event.preventDefault()
+      const container = playerContainerRef.current
+      if (!container) {
+        return
+      }
+
+      if (document.fullscreenElement) {
+        void document.exitFullscreen()
+      } else {
+        void container.requestFullscreen()
+      }
+      return
+    }
+
+    if (lower === 'm') {
+      event.preventDefault()
+      video.muted = !video.muted
+      return
+    }
+
+    if (/^[0-9]$/.test(key)) {
+      event.preventDefault()
+      const pct = Number(key) / 10
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        video.currentTime = video.duration * pct
+      }
+      return
+    }
+
+    if (key === '<' || key === ',') {
+      event.preventDefault()
+      const nextRate = Math.max(0.25, video.playbackRate - 0.25)
+      video.playbackRate = nextRate
+      setPlaybackRate(nextRate)
+      return
+    }
+
+    if (key === '>' || key === '.') {
+      event.preventDefault()
+      const nextRate = Math.min(4, video.playbackRate + 0.25)
+      video.playbackRate = nextRate
+      setPlaybackRate(nextRate)
+      return
+    }
+
+    if (key === 'Escape') {
+      event.preventDefault()
+      navigate('/')
+    }
+  })
+
   if (!resolvedUri) {
     return (
       <ErrorPanel
@@ -242,7 +382,7 @@ export function VideoPage() {
     )
   }
 
-  if (!talk && talksLoading) {
+  if (!talk && (talksLoading || metadataLoading)) {
     return (
       <section className="rounded-lg border border-line/45 bg-surface/80 p-5">
         <p className="text-sm text-muted">Loading video metadata...</p>
@@ -338,7 +478,7 @@ export function VideoPage() {
 
           {talk?.sourceRef ? (
             <a
-              href={getArchiveBlobUrl(talk.sourceRef)}
+              href={getArchiveBlobUrl(talk.sourceRepoDid, talk.sourceRef)}
               download={`${talk.title}.mp4`}
               className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line/60 bg-surface/80 px-3 text-sm text-text transition hover:bg-surface/90"
             >

@@ -12,9 +12,11 @@ import { cn } from '@/lib/utils'
 interface TalkCardProps {
   talk: AppTalk
   featured?: boolean
+  selected?: boolean
+  cardId?: string
 }
 
-export function TalkCard({ talk, featured = false }: TalkCardProps) {
+export function TalkCard({ talk, featured = false, selected = false, cardId }: TalkCardProps) {
   const cardRef = useRef<HTMLAnchorElement | null>(null)
   const [thumbnail, setThumbnail] = useState<string | null>(() => getCachedThumbnail(talk.uri))
   const [hasEnteredView, setHasEnteredView] = useState<boolean>(false)
@@ -68,6 +70,7 @@ export function TalkCard({ talk, featured = false }: TalkCardProps) {
 
   return (
     <Link
+      id={cardId}
       ref={cardRef}
       to={toVideoPath(talk.uri)}
       onClick={cardTapHaptic}
@@ -76,6 +79,7 @@ export function TalkCard({ talk, featured = false }: TalkCardProps) {
         featured
           ? 'border-line/45 bg-surface/80 hover:border-line/60 supports-[backdrop-filter]:backdrop-blur-md'
           : 'border-line/35 bg-surface/80 hover:border-line/50',
+        selected && 'ring-2 ring-text/35',
         !featured && 'perf-content-auto',
         featured ? 'p-5 md:p-6' : 'p-4',
       )}

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Streamplace VOD Client</title>
+  <desc id="desc">Minimal black and white Open Graph card</desc>
+
+  <rect width="1200" height="630" fill="#050505" />
+
+  <rect x="48" y="48" width="1104" height="534" fill="none" stroke="#f5f5f5" stroke-width="2" />
+  <rect x="72" y="72" width="1056" height="486" fill="none" stroke="#7c7c7c" stroke-width="1" />
+
+  <text x="92" y="132" fill="#f5f5f5" font-family="JetBrains Mono, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="26" letter-spacing="2">
+    STREAMPLACE VOD CLIENT
+  </text>
+
+  <line x1="92" y1="162" x2="1108" y2="162" stroke="#6a6a6a" stroke-width="1" />
+
+  <text x="92" y="258" fill="#ffffff" font-family="JetBrains Mono, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="72" font-weight="700" letter-spacing="1.5">
+    vods.j4ck.xyz
+  </text>
+
+  <text x="92" y="310" fill="#bdbdbd" font-family="JetBrains Mono, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="24">
+    browse + stream place.stream.video records
+  </text>
+
+  <rect x="92" y="372" width="1016" height="118" fill="#0f0f0f" stroke="#8a8a8a" stroke-width="1" />
+  <text x="116" y="418" fill="#ffffff" font-family="JetBrains Mono, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="22">
+    at://did:plc:.../place.stream.video/...
+  </text>
+  <text x="116" y="458" fill="#b0b0b0" font-family="JetBrains Mono, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="20">
+    fast playback | deep links | atmosphere archive
+  </text>
+
+  <text x="92" y="534" fill="#8e8e8e" font-family="JetBrains Mono, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace" font-size="18" letter-spacing="1.2">
+    [OG CARD :: STATIC :: MONO :: B/W]
+  </text>
+</svg>

@@ -79,6 +79,32 @@ Set this env var in Cloudflare Pages project settings for semantic mode:
 
 If the key is not set, search falls back gracefully to lexical title ranking.
 
+## Open Graph preview support (Bluesky / Twitter)
+
+This repo now supports crawler-friendly OG tags in two layers:
+
+- Default static OG card from `public/og-default.png`.
+- Per-video HTML metadata at `functions/video/[didParam]/[rkeyParam].ts` so shared `/video/:did/:rkey` links return server-rendered meta tags for crawlers.
+
+Why this works on Cloudflare Pages:
+
+- Social crawlers usually do not execute SPA JavaScript.
+- Cloudflare Pages Functions can return HTML with route-specific `<meta property="og:*">` tags before the SPA loads.
+
+### Cost profile / free-tier impact
+
+- This setup is low-cost because image generation is static (`og-default.png`) and reused.
+- Per-video function requests fetch one `com.atproto.repo.getRecord` for title/description and then inject tags into `index.html`.
+- No per-request video frame extraction, no external image API, and no persistent storage writes.
+
+### Verify previews after deploy
+
+1. Open any direct video URL and confirm source HTML includes route-specific `og:title`, `og:description`, and `og:url`.
+2. Validate with social debuggers:
+   - Twitter/X Card Validator: `https://cards-dev.twitter.com/validator`
+   - OpenGraph checker: `https://www.opengraph.xyz/`
+3. Paste a video URL into Bluesky compose and confirm preview card appears.
+
 ### Freshness behavior
 
 - Newly uploaded VODs appear immediately in results because the search function overlays a live catalog

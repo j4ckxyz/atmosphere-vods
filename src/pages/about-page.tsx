@@ -7,14 +7,14 @@ import {
 } from '@/lib/theme'
 import {
   hapticTap,
+  isHapticsSupported,
   isHapticsDisabledByUser,
-  isTouchDevice,
   setHapticsDisabled,
 } from '@/lib/haptics'
 
 export function AboutPage() {
   const [themePreference, setLocalThemePreference] = useState<ThemePreference>(() => getStoredThemePreference())
-  const [showHapticsToggle] = useState<boolean>(() => isTouchDevice())
+  const [showHapticsToggle] = useState<boolean>(() => isHapticsSupported())
   const [hapticsDisabled, setLocalHapticsDisabled] = useState<boolean>(() => isHapticsDisabledByUser())
 
   const onThemeChange = (value: ThemePreference) => {
@@ -113,7 +113,7 @@ export function AboutPage() {
       {showHapticsToggle ? (
         <section className="rounded-lg border border-line/45 bg-surface/80 p-5 md:p-6">
           <h2 className="text-base font-semibold text-text">Haptic feedback</h2>
-          <p className="mt-2 text-sm text-muted">Subtle vibrations on interactions (Android only).</p>
+          <p className="mt-2 text-sm text-muted">Subtle vibrations on taps and navigation where supported by your browser/device.</p>
           <div className="mt-3 flex items-center gap-3">
             <button
               type="button"

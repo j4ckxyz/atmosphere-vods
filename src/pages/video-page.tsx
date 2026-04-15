@@ -46,6 +46,7 @@ export function VideoPage() {
   const hlsRef = useRef<HlsLike | null>(null)
   const playerContainerRef = useRef<HTMLDivElement | null>(null)
 
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null)
   const [status, setStatus] = useState<PlaybackStatus>('idle')
   const [error, setError] = useState<string | null>(null)
   const [reloadToken, setReloadToken] = useState(0)
@@ -53,6 +54,11 @@ export function VideoPage() {
   const [resolvedTalk, setResolvedTalk] = useState<AppTalk | null>(null)
   const [metadataLoading, setMetadataLoading] = useState<boolean>(false)
   const [ionosphere, setIonosphere] = useState<IonosphereEnrichment | null>(null)
+
+  const handleVideoRef = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node
+    setVideoElement(node)
+  }, [])
 
   const resolvedUri = useMemo(
     () => (didParam && rkeyParam ? toVideoUriFromParams(didParam, rkeyParam) : undefined),
@@ -110,12 +116,12 @@ export function VideoPage() {
   }, [resolvedUri, talks, talksLoading])
 
   useEffect(() => {
-    if (!resolvedUri || !videoRef.current) {
+    if (!resolvedUri || !videoElement) {
       return
     }
 
     const uri = resolvedUri
-    const video = videoRef.current
+    const video = videoElement
     setStatus('loading')
     setError(null)
     setPlaylistUrl(null)
@@ -200,7 +206,7 @@ export function VideoPage() {
       video.load()
       setPlaylistUrl(null)
     }
-  }, [resolvedUri, reloadToken])
+  }, [resolvedUri, reloadToken, videoElement])
 
   useEffect(() => {
     if (!talk || !isAtmosphereTalk(talk)) {
@@ -412,7 +418,7 @@ export function VideoPage() {
       <section className="space-y-5" ref={playerContainerRef}>
         <div className="relative overflow-hidden rounded-xl border border-line/45 bg-surface/80">
           <video
-            ref={videoRef}
+            ref={handleVideoRef}
             className="aspect-video w-full"
             controls
             playsInline

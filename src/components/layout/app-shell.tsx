@@ -107,7 +107,7 @@ export function AppShell({ children }: PropsWithChildren) {
     <div className="relative isolate min-h-svh bg-bg">
       <header
         className={cn(
-          'sticky top-0 z-10 border-b border-line/45 bg-surface/80 transition-transform duration-300 ease-out supports-[backdrop-filter]:backdrop-blur-md',
+          'sticky top-0 z-40 border-b border-line/45 bg-surface/80 transition-transform duration-300 ease-out supports-[backdrop-filter]:backdrop-blur-md',
           isHeaderHidden ? '-translate-y-full' : 'translate-y-0',
         )}
         onFocusCapture={() => setIsHeaderHidden(false)}
@@ -129,7 +129,7 @@ export function AppShell({ children }: PropsWithChildren) {
 
       <main
         id="main-content"
-        className="relative z-10 mx-auto w-full max-w-5xl px-3 pb-24 pt-7 sm:px-4 md:px-6 md:pb-10 md:pt-10"
+        className="relative z-0 mx-auto w-full max-w-5xl px-3 pb-24 pt-7 sm:px-4 md:px-6 md:pb-10 md:pt-10"
       >
         {children}
       </main>
@@ -178,7 +178,7 @@ export function AppShell({ children }: PropsWithChildren) {
       </footer>
 
       <nav
-        className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-20 flex min-h-16 items-center gap-1.5 rounded-xl border border-line/45 bg-surface/80 px-1.5 py-1.5 supports-[backdrop-filter]:backdrop-blur-md sm:inset-x-3 sm:gap-2 sm:px-2 sm:py-2 md:hidden"
+        className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-50 flex min-h-16 items-center gap-1.5 rounded-xl border border-line/45 bg-surface/80 px-1.5 py-1.5 supports-[backdrop-filter]:backdrop-blur-md sm:inset-x-3 sm:gap-2 sm:px-2 sm:py-2 md:hidden"
         aria-label="Bottom tabs"
       >
         {navItems.map((item) => (

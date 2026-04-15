@@ -72,6 +72,55 @@ async function fetchJson<T>(url: string): Promise<T> {
   return (await response.json()) as T
 }
 
+function resolveVariantUrl(masterUrl: string, variantPath: string): string {
+  try {
+    return new URL(variantPath, masterUrl).toString()
+  } catch {
+    return variantPath
+  }
+}
+
+function getLowestBandwidthVariantUrl(masterUrl: string, manifestText: string): string | null {
+  const lines = manifestText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+
+  let bestBandwidth = Number.POSITIVE_INFINITY
+  let bestVariant: string | null = null
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index]
+    if (!line.startsWith('#EXT-X-STREAM-INF:')) {
+      continue
+    }
+
+    const bandwidthMatch = line.match(/(?:^|,)BANDWIDTH=(\d+)/)
+    const bandwidth = bandwidthMatch ? Number(bandwidthMatch[1]) : Number.POSITIVE_INFINITY
+
+    let nextIndex = index + 1
+    while (nextIndex < lines.length && lines[nextIndex].startsWith('#')) {
+      nextIndex += 1
+    }
+
+    const variantPath = lines[nextIndex]
+    if (!variantPath) {
+      continue
+    }
+
+    if (bandwidth < bestBandwidth) {
+      bestBandwidth = bandwidth
+      bestVariant = variantPath
+    }
+  }
+
+  if (!bestVariant) {
+    return null
+  }
+
+  return resolveVariantUrl(masterUrl, bestVariant)
+}
+
 async function mapWithConcurrency<T, R>(
   items: T[],
   limit: number,
@@ -377,7 +426,12 @@ export async function fetchTalkByUri(uri: string): Promise<AppTalk> {
   return toAppTalkFromRecord(record)
 }
 
-export async function fetchVideoPlaylist(uri: string): Promise<string> {
+export async function fetchVideoPlaylist(
+  uri: string,
+  options?: {
+    dataSaver?: boolean
+  },
+): Promise<string> {
   const query = new URLSearchParams({ uri })
   const playlistUrl = `${VOD_PLAYLIST_ENDPOINT}?${query.toString()}`
   let response: Response
@@ -400,6 +454,13 @@ export async function fetchVideoPlaylist(uri: string): Promise<string> {
 
   if (!text.includes('#EXTM3U')) {
     throw new Error('Playback endpoint did not return an HLS playlist')
+  }
+
+  if (options?.dataSaver) {
+    const variantUrl = getLowestBandwidthVariantUrl(playlistUrl, text)
+    if (variantUrl) {
+      return variantUrl
+    }
   }
 
   return playlistUrl

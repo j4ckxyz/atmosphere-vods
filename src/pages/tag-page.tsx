@@ -3,11 +3,14 @@ import { Link, useParams } from 'react-router-dom'
 import { ErrorPanel } from '@/components/error-panel'
 import { TalkCard } from '@/components/talk-card'
 import { TalkGridSkeleton } from '@/components/talk-grid-skeleton'
+import { hapticBack } from '@/lib/haptics'
 import { fromTagParam } from '@/lib/routes'
 import { matchesTagRoute, normalizeSearchValue } from '@/lib/taxonomy'
+import { useDataSaver } from '@/lib/use-data-saver'
 import { useVideos } from '@/state/videos-context'
 
 export function TagPage() {
+  const { enabled: dataSaverEnabled } = useDataSaver()
   const { tagParam } = useParams<{ tagParam: string }>()
   const { talks, loading, error, refresh } = useVideos()
 
@@ -29,7 +32,13 @@ export function TagPage() {
     <div className="space-y-7 md:space-y-10" aria-busy={loading}>
       <header className="space-y-2">
         <p className="text-sm text-muted">
-          <Link to="/search" className="underline-offset-4 hover:text-text hover:underline">
+          <Link
+            to="/search"
+            onClick={() => {
+              hapticBack()
+            }}
+            className="underline-offset-4 hover:text-text hover:underline"
+          >
             Search
           </Link>{' '}
           / #{normalizedTag}
@@ -68,7 +77,12 @@ export function TagPage() {
           </p>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] md:gap-4">
             {filteredTalks.map((talk, index) => (
-              <TalkCard key={talk.uri} talk={talk} featured={index === 0} />
+              <TalkCard
+                key={talk.uri}
+                talk={talk}
+                featured={index === 0}
+                disableThumbnails={dataSaverEnabled}
+              />
             ))}
           </div>
         </section>

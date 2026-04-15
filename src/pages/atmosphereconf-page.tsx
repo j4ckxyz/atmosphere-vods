@@ -5,12 +5,15 @@ import { TalkCard } from '@/components/talk-card'
 import { TalkGridSkeleton } from '@/components/talk-grid-skeleton'
 import { isAtmosphereTalk } from '@/lib/api'
 import { formatDateTime } from '@/lib/format'
+import { hapticSelect, hapticTap } from '@/lib/haptics'
 import { fetchAtmosphereIonosphereEnrichment } from '@/lib/ionosphere'
 import type { IonosphereEnrichmentResult } from '@/lib/types'
 import { searchTalkUris } from '@/lib/semantic-search'
+import { useDataSaver } from '@/lib/use-data-saver'
 import { useVideos } from '@/state/videos-context'
 
 export function AtmosphereConfPage() {
+  const { enabled: dataSaverEnabled } = useDataSaver()
   const { talks, loading, error, refresh } = useVideos()
   const filteredTalks = talks.filter((talk) => isAtmosphereTalk(talk))
   const [enrichment, setEnrichment] = useState<IonosphereEnrichmentResult>({
@@ -127,21 +130,27 @@ export function AtmosphereConfPage() {
 
         {enrichment.allTopics.length > 0 ? (
           <div className="flex flex-wrap gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setSelectedTopic('')}
-              className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text"
-            >
-              All topics
-            </button>
-            {enrichment.allTopics.slice(0, 20).map((topic) => (
               <button
-                key={topic}
                 type="button"
-                onClick={() => setSelectedTopic(topic)}
+                onClick={() => {
+                  hapticTap()
+                  setSelectedTopic('')
+                }}
                 className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text"
               >
-                {topic}
+                All topics
+              </button>
+              {enrichment.allTopics.slice(0, 20).map((topic) => (
+                <button
+                  key={topic}
+                  type="button"
+                  onClick={() => {
+                    hapticSelect()
+                    setSelectedTopic(topic)
+                  }}
+                  className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text"
+                >
+                  {topic}
               </button>
             ))}
           </div>
@@ -168,7 +177,7 @@ export function AtmosphereConfPage() {
           {featuredTalk ? (
             <section className="space-y-3 md:space-y-4">
               <h2 className="text-sm font-medium text-muted">Latest Upload</h2>
-              <TalkCard talk={featuredTalk} featured />
+              <TalkCard talk={featuredTalk} featured disableThumbnails={dataSaverEnabled} />
               {enrichment.byVodUri.get(featuredTalk.uri) ? (
                 <article className="rounded-lg border border-line/45 bg-surface/80 p-4 text-sm text-muted">
                   <p>
@@ -194,7 +203,10 @@ export function AtmosphereConfPage() {
                         <button
                           key={topic}
                           type="button"
-                          onClick={() => setSelectedTopic(topic)}
+                          onClick={() => {
+                            hapticSelect()
+                            setSelectedTopic(topic)
+                          }}
                           className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/70 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text"
                         >
                           {topic}
@@ -227,7 +239,7 @@ export function AtmosphereConfPage() {
               <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] md:gap-4">
                 {remainingTalks.map((talk) => (
                   <div key={talk.uri} className="space-y-2">
-                    <TalkCard talk={talk} />
+                    <TalkCard talk={talk} disableThumbnails={dataSaverEnabled} />
                     {enrichment.byVodUri.get(talk.uri) ? (
                       <article className="rounded-lg border border-line/45 bg-surface/80 p-3 text-xs text-muted">
                         <p>
@@ -241,7 +253,10 @@ export function AtmosphereConfPage() {
                               <button
                                 key={topic}
                                 type="button"
-                                onClick={() => setSelectedTopic(topic)}
+                                onClick={() => {
+                                  hapticSelect()
+                                  setSelectedTopic(topic)
+                                }}
                                 className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/70 px-2.5 text-[11px] text-muted transition hover:border-line/60 hover:text-text"
                               >
                                 {topic}

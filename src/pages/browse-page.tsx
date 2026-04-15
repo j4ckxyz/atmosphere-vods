@@ -6,11 +6,13 @@ import { TalkGridSkeleton } from '@/components/talk-grid-skeleton'
 import { ErrorPanel } from '@/components/error-panel'
 import { isAtmosphereTalk } from '@/lib/api'
 import { hapticTap } from '@/lib/haptics'
+import { useDataSaver } from '@/lib/use-data-saver'
 import { useKeyboard } from '@/lib/use-keyboard'
 import { useVideos } from '@/state/videos-context'
 
 export function BrowsePage() {
   const navigate = useNavigate()
+  const { enabled: dataSaverEnabled } = useDataSaver()
   const { talks, loading, error, refresh } = useVideos()
   const [featuredTalk, ...remainingTalks] = talks
   const sourceRepos = Array.from(new Set(talks.map((talk) => talk.sourceRepoDid))).sort((a, b) =>
@@ -113,6 +115,7 @@ export function BrowsePage() {
                 featured
                 selected={selectedIndex === 0}
                 cardId={`talk-card-${encodeURIComponent(featuredTalk.uri)}`}
+                disableThumbnails={dataSaverEnabled}
               />
             </section>
           ) : null}
@@ -122,12 +125,13 @@ export function BrowsePage() {
               <h2 className="text-sm font-medium text-muted">More Videos</h2>
               <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-3 md:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] md:gap-4">
                 {remainingTalks.map((talk, index) => (
-                  <TalkCard
-                    key={talk.uri}
-                    talk={talk}
-                    selected={selectedIndex === index + 1}
-                    cardId={`talk-card-${encodeURIComponent(talk.uri)}`}
-                  />
+                    <TalkCard
+                      key={talk.uri}
+                      talk={talk}
+                      selected={selectedIndex === index + 1}
+                      cardId={`talk-card-${encodeURIComponent(talk.uri)}`}
+                      disableThumbnails={dataSaverEnabled}
+                    />
                 ))}
               </div>
             </section>

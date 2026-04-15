@@ -1,6 +1,7 @@
 import { AlertTriangle, RefreshCcw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { hapticTap } from '@/lib/haptics'
 
 interface ErrorPanelProps {
   title: string
@@ -20,7 +21,14 @@ export function ErrorPanel({ title, message, onRetry }: ErrorPanelProps) {
       </div>
 
       {onRetry ? (
-        <Button variant="secondary" className="mt-5" onClick={onRetry}>
+        <Button
+          variant="secondary"
+          className="mt-5"
+          onClick={() => {
+            hapticTap()
+            onRetry()
+          }}
+        >
           <RefreshCcw className="h-4 w-4" />
           Try again
         </Button>

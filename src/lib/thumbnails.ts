@@ -1,4 +1,5 @@
 import { fetchVideoPlaylist } from './api'
+import { isDataSaverEnabled } from './data-saver'
 
 const THUMBNAIL_KEY_PREFIX = 'thumb:'
 const THUMBNAIL_QUALITY = 0.6
@@ -14,12 +15,6 @@ type IdleCallback = (deadline: { didTimeout: boolean; timeRemaining: () => numbe
 
 type IdleWindow = Window & {
   requestIdleCallback?: (callback: IdleCallback, options?: { timeout: number }) => number
-}
-
-type NavigatorWithConnection = Navigator & {
-  connection?: {
-    saveData?: boolean
-  }
 }
 
 const inflightExtractions = new Map<string, Promise<ThumbnailResult>>()
@@ -39,12 +34,7 @@ function prefersReducedData(): boolean {
     return false
   }
 
-  const saveDataEnabled = Boolean((navigator as NavigatorWithConnection).connection?.saveData)
-  const reducedDataMedia =
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-data: reduce)').matches
-
-  return saveDataEnabled || reducedDataMedia
+  return isDataSaverEnabled()
 }
 
 function runWhenBrowserIdle(task: () => Promise<ThumbnailResult>): Promise<ThumbnailResult> {

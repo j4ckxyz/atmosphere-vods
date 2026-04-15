@@ -25,6 +25,7 @@ import {
 import { fetchAtmosphereIonosphereEnrichment } from '@/lib/ionosphere'
 import { toTagPath, toVideoUriFromParams } from '@/lib/routes'
 import { getTalkTaxonomyTokens } from '@/lib/taxonomy'
+import { useDataSaver } from '@/lib/use-data-saver'
 import { useKeyboard } from '@/lib/use-keyboard'
 import type { AppTalk, IonosphereEnrichment } from '@/lib/types'
 import { useVideos } from '@/state/videos-context'
@@ -39,6 +40,7 @@ interface HlsLike {
 
 export function VideoPage() {
   const navigate = useNavigate()
+  const { enabled: dataSaverEnabled } = useDataSaver()
   const { didParam, rkeyParam } = useParams<{ didParam: string; rkeyParam: string }>()
   const { talks, loading: talksLoading } = useVideos()
 
@@ -142,7 +144,7 @@ export function VideoPage() {
 
     async function load() {
       try {
-        const playlistUrl = await fetchVideoPlaylist(uri)
+        const playlistUrl = await fetchVideoPlaylist(uri, { dataSaver: dataSaverEnabled })
         if (cancelled) {
           return
         }
@@ -158,10 +160,22 @@ export function VideoPage() {
         }
 
         if (Hls.isSupported()) {
-          const hls = new Hls({
-            maxBufferLength: 30,
-            lowLatencyMode: true,
-          })
+          const hls = new Hls(
+            dataSaverEnabled
+              ? {
+                  maxBufferLength: 12,
+                  maxMaxBufferLength: 20,
+                  lowLatencyMode: false,
+                  capLevelToPlayerSize: true,
+                  startLevel: 0,
+                  abrEwmaFastLive: 2,
+                  abrEwmaSlowLive: 8,
+                }
+              : {
+                  maxBufferLength: 30,
+                  lowLatencyMode: true,
+                },
+          )
           hls.loadSource(playlistUrl)
           hls.attachMedia(video)
           hlsRef.current = hls
@@ -173,7 +187,7 @@ export function VideoPage() {
         }
 
         video.muted = false
-        video.volume = Math.max(video.volume || 1, 0.75)
+        video.volume = dataSaverEnabled ? Math.max(video.volume || 1, 0.6) : Math.max(video.volume || 1, 0.75)
 
         setPlaylistUrl(playlistUrl)
         setError(null)
@@ -206,7 +220,7 @@ export function VideoPage() {
       video.load()
       setPlaylistUrl(null)
     }
-  }, [resolvedUri, reloadToken, videoElement])
+  }, [resolvedUri, reloadToken, videoElement, dataSaverEnabled])
 
   useEffect(() => {
     if (!talk || !isAtmosphereTalk(talk)) {
@@ -439,6 +453,12 @@ export function VideoPage() {
               onRetry={onRetryPlayback}
             />
           </div>
+        ) : null}
+
+        {dataSaverEnabled ? (
+          <p className="text-xs text-muted" role="status">
+            Data saver is on. Playback prefers lower-bandwidth variants.
+          </p>
         ) : null}
 
         {status !== 'error' && error ? (

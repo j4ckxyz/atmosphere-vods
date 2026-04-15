@@ -6,9 +6,10 @@ import { ErrorPanel } from '@/components/error-panel'
 import { TalkCard } from '@/components/talk-card'
 import { TalkGridSkeleton } from '@/components/talk-grid-skeleton'
 import { isAtmosphereTalk } from '@/lib/api'
-import { hapticTap } from '@/lib/haptics'
+import { hapticSelect, hapticTap } from '@/lib/haptics'
 import { fetchAtmosphereIonosphereEnrichment } from '@/lib/ionosphere'
 import { searchTalkUris } from '@/lib/semantic-search'
+import { useDataSaver } from '@/lib/use-data-saver'
 import { toTagPath } from '@/lib/routes'
 import { getTalkTaxonomyTokens, scoreTalkForQuery } from '@/lib/taxonomy'
 import type { IonosphereEnrichmentResult } from '@/lib/types'
@@ -16,6 +17,7 @@ import { useKeyboard } from '@/lib/use-keyboard'
 import { useVideos } from '@/state/videos-context'
 
 export function SearchPage() {
+  const { enabled: dataSaverEnabled } = useDataSaver()
   const [searchParams] = useSearchParams()
   const [query, setQuery] = useState<string>('')
   const [remoteQuery, setRemoteQuery] = useState<string>('')
@@ -322,6 +324,9 @@ export function SearchPage() {
               <Link
                 key={token}
                 to={toTagPath(token)}
+                onClick={() => {
+                  hapticSelect()
+                }}
                 className="inline-flex min-h-11 items-center rounded-md border border-line/45 bg-surface/80 px-3 text-xs text-muted transition hover:border-line/60 hover:text-text"
               >
                 #{token}
@@ -370,6 +375,7 @@ export function SearchPage() {
                 selected={selectedTalkIndex === index}
                 cardId={`talk-card-${encodeURIComponent(talk.uri)}`}
                 hapticPattern="select"
+                disableThumbnails={dataSaverEnabled}
               />
             ))}
           </div>

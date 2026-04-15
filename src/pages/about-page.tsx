@@ -6,16 +6,19 @@ import {
   type ThemePreference,
 } from '@/lib/theme'
 import {
+  hapticSelect,
   hapticTap,
   isHapticsSupported,
   isHapticsDisabledByUser,
   setHapticsDisabled,
 } from '@/lib/haptics'
+import { useDataSaver } from '@/lib/use-data-saver'
 
 export function AboutPage() {
   const [themePreference, setLocalThemePreference] = useState<ThemePreference>(() => getStoredThemePreference())
   const [showHapticsToggle] = useState<boolean>(() => isHapticsSupported())
   const [hapticsDisabled, setLocalHapticsDisabled] = useState<boolean>(() => isHapticsDisabledByUser())
+  const { enabled: dataSaverEnabled, supported: dataSaverSupported, setEnabled: setDataSaverEnabled } = useDataSaver()
 
   const onThemeChange = (value: ThemePreference) => {
     setLocalThemePreference(value)
@@ -30,6 +33,16 @@ export function AboutPage() {
     if (!nextDisabled) {
       hapticTap()
     }
+  }
+
+  const onDataSaverToggle = () => {
+    const nextEnabled = !dataSaverEnabled
+    setDataSaverEnabled(nextEnabled)
+    if (nextEnabled) {
+      hapticSelect()
+      return
+    }
+    hapticTap()
   }
 
   return (
@@ -127,6 +140,29 @@ export function AboutPage() {
               />
             </button>
             <span className="text-sm text-muted">{!hapticsDisabled ? 'Enabled' : 'Disabled'}</span>
+          </div>
+        </section>
+      ) : null}
+
+      {dataSaverSupported ? (
+        <section className="rounded-lg border border-line/45 bg-surface/80 p-5 md:p-6">
+          <h2 className="text-base font-semibold text-text">Mobile data saver</h2>
+          <p className="mt-2 text-sm text-muted">
+            Reduce network usage on mobile by disabling thumbnail extraction and preferring lower-bandwidth streams.
+          </p>
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={dataSaverEnabled}
+              onClick={onDataSaverToggle}
+              className="inline-flex h-11 w-[3.25rem] items-center rounded-full border border-line/45 bg-surface/80 px-1 transition"
+            >
+              <span
+                className={`h-5 w-5 rounded-full bg-text transition-transform ${dataSaverEnabled ? 'translate-x-5' : 'translate-x-0'}`}
+              />
+            </button>
+            <span className="text-sm text-muted">{dataSaverEnabled ? 'Enabled' : 'Disabled'}</span>
           </div>
         </section>
       ) : null}

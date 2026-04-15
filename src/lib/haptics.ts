@@ -45,19 +45,19 @@ type HapticsWindow = Window & {
 
 const HAPTICS_DISABLED_KEY = 'haptics-disabled'
 const SEEK_HAPTIC_INTERVAL_MS = 500
-const GLOBAL_HAPTIC_INTERVAL_MS = 30
+const GLOBAL_HAPTIC_INTERVAL_MS = 24
 const MIN_HAPTIC_MS = 10
 const MAX_HAPTIC_MS = 500
 const IOS_SWITCH_MAX_PULSES = 5
 
 const PATTERNS = {
-  tap: 14,
-  select: 18,
-  play: [16, 45, 24],
-  seek: 12,
-  success: [14, 65, 22],
-  error: [26, 40, 26, 40, 26],
-  back: 14,
+  tap: 12,
+  select: 16,
+  play: [12, 36, 18],
+  seek: 10,
+  success: [10, 48, 20],
+  error: [22, 34, 22, 34, 22],
+  back: 12,
 } as const
 
 let lastSeekHapticAt = 0

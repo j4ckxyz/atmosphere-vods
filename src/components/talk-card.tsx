@@ -15,6 +15,7 @@ interface TalkCardProps {
   selected?: boolean
   cardId?: string
   hapticPattern?: 'tap' | 'select'
+  disableThumbnails?: boolean
 }
 
 export function TalkCard({
@@ -23,12 +24,17 @@ export function TalkCard({
   selected = false,
   cardId,
   hapticPattern = 'tap',
+  disableThumbnails = false,
 }: TalkCardProps) {
   const cardRef = useRef<HTMLAnchorElement | null>(null)
   const [thumbnail, setThumbnail] = useState<string | null>(() => getCachedThumbnail(talk.uri))
   const [hasEnteredView, setHasEnteredView] = useState<boolean>(false)
 
   useEffect(() => {
+    if (disableThumbnails) {
+      return
+    }
+
     if (thumbnail || hasEnteredView || !cardRef.current) {
       return
     }
@@ -54,9 +60,13 @@ export function TalkCard({
     return () => {
       observer.disconnect()
     }
-  }, [thumbnail, hasEnteredView])
+  }, [thumbnail, hasEnteredView, disableThumbnails])
 
   useEffect(() => {
+    if (disableThumbnails) {
+      return
+    }
+
     if (!hasEnteredView || thumbnail) {
       return
     }
@@ -73,7 +83,7 @@ export function TalkCard({
     return () => {
       active = false
     }
-  }, [hasEnteredView, thumbnail, talk.uri])
+  }, [hasEnteredView, thumbnail, talk.uri, disableThumbnails])
 
   return (
     <Link
